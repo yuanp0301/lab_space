@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>《春》全景备课工作台 - 统编版七年级上</title>
+    <style>
+      :root {
+        --primary: #2e7d32; /* 春意绿 */
+        --primary-light: #e8f5e9;
+        --accent: #ff6f00; /* 活力橙 */
+        --bg-gray: #f4f6f8;
+        --border: #e0e0e0;
+        --text-main: #333;
+        --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        color: var(--text-main);
+      }
+
+      /* 顶部导航 */
+      header {
+        height: 50px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        z-index: 10;
+      }
+      .brand {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* 主布局 Grid */
+      .layout {
+        display: grid;
+        grid-template-columns: 260px 1fr 320px; /* 左-中-右 */
+        flex: 1;
+        height: calc(100vh - 50px);
+      }
+
+      /* --- 左侧：知识点区 --- */
+      .sidebar-left {
+        background: white;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sidebar-header {
+        padding: 10px 15px;
+        background: #fafafa;
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+      }
+      .knowledge-tree {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+
+      /* 分类折叠样式 */
+      .kp-category {
+        margin-bottom: 5px;
+      }
+      .kp-cat-title {
+        padding: 6px 10px;
+        background: #f0f4c3;
+        color: #33691e;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+      }
+      .kp-list {
+        display: none;
+        padding-left: 5px;
+        margin-top: 5px;
+      }
+      .kp-list.active {
+        display: block;
+      }
+
+      .kp-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        background: white;
+        border: 1px solid #ddd;
+        border-left: 3px solid var(--primary);
+        border-radius: 4px;
+        cursor: grab;
+        font-size: 12px;
+        transition: transform 0.2s;
+      }
+      .kp-item:hover {
+        transform: translateX(3px);
+        border-color: var(--primary);
+      }
+      .kp-item:active {
+        cursor: grabbing;
+      }
+
+      /* --- 中间：画布编辑区 --- */
+      .canvas-area {
+        background: var(--bg-gray);
+        background-image: radial-gradient(#cbd5e0 1px, transparent 1px);
+        background-size: 20px 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* 策略选择栏 */
+      .strategy-bar {
+        padding: 10px 20px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      select.strategy-select {
+        padding: 6px;
+        border-radius: 4px;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        font-weight: bold;
+        outline: none;
+      }
+
+      /* 滚动画布 */
+      .canvas-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      /* 教学环节 (Stage) */
+      .stage-box {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px dashed #aaa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        position: relative;
+        min-height: 150px;
+        transition: background 0.3s;
+      }
+      .stage-box.drag-over {
+        background: rgba(46, 125, 50, 0.1);
+        border-color: var(--primary);
+      }
+
+      .stage-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 5px;
+      }
+      .stage-title {
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        background: transparent;
+        color: #333;
+        width: 300px;
+        outline: none;
+      }
+      .stage-meta {
+        font-size: 12px;
+        color: #666;
+        margin-left: 10px;
+        font-style: italic;
+        background: #eee;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+
+      /* 环节内的卡片流 */
+      .card-flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      /* 知识卡片 (Card) */
+      .k-card {
+        width: 220px;
+        background: white;
+        border-radius: 6px;
+        box-shadow: var(--card-shadow);
+        border: 2px solid transparent;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+      }
+      .k-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .k-card.selected {
+        border-color: var(--accent);
+      }
+
+      .k-card-head {
+        padding: 8px 10px;
+        background: #fafafa;
+        border-bottom: 1px solid #eee;
+        font-weight: bold;
+        font-size: 13px;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+      }
+      .k-card-body {
+        padding: 10px;
+        font-size: 12px;
+        color: #666;
+        min-height: 40px;
+      }
+      .k-card-method {
+        font-size: 11px;
+        color: var(--primary);
+        margin-top: 5px;
+        background: var(--primary-light);
+        padding: 3px;
+        border-radius: 3px;
+      }
+
+      /* 卡片内素材区 (Icons) */
+      .k-card-assets {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        padding: 5px 10px 10px 10px;
+      }
+      .k-card-assets.drag-over {
+        background: #fff3e0;
+      }
+      .asset-icon-mini {
+        width: 24px;
+        height: 24px;
+        background: #eee;
+        color: #555;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+
+      /* --- 右侧：预览与资源 --- */
+      .sidebar-right {
+        background: white;
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* 1. 课件预览区 (上部) */
+      .preview-section {
+        padding: 15px;
+        background: #263238;
+        color: white;
+        border-bottom: 1px solid var(--border);
+      }
+      .preview-title {
+        font-size: 12px;
+        margin-bottom: 8px;
+        color: #ccc;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* 16:9 容器 */
+      .slide-container {
+        width: 100%;
+        aspect-ratio: 16/9;
+        background: white;
+        color: #333;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .slide-content {
+        padding: 20px;
+        flex: 1;
+        overflow: hidden;
+      }
+      .slide-footer {
+        height: 25px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 10px;
+        color: white;
+      }
+
+      /* 2. 资源素材库 (下部) */
+      .assets-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #fff;
+      }
+      .assets-tabs {
+        display: flex;
+        border-bottom: 1px solid #eee;
+      }
+      .a-tab {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        font-size: 13px;
+        cursor: pointer;
+        background: #f9f9f9;
+      }
+      .a-tab.active {
+        background: white;
+        color: var(--primary);
+        font-weight: bold;
+        border-top: 2px solid var(--primary);
+      }
+
+      .assets-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .asset-item {
+        border: 1px solid #eee;
+        border-radius: 4px;
+        padding: 8px;
+        cursor: grab;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        text-align: center;
+      }
+      .asset-item:hover {
+        border-color: var(--accent);
+        background: #fff8e1;
+      }
+      .asset-thumb {
+        font-size: 24px;
+      }
+      .asset-name {
+        font-size: 11px;
+        word-break: break-all;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      /* 通用按钮 */
+      .btn-mini {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #999;
+      }
+      .btn-mini:hover {
+        color: red;
+      }
+      .btn-add {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        margin: 0 auto;
+        display: block;
+        width: fit-content;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">🌱 灵动课堂 · 《春》备课工作台</div>
+      <div style="font-size: 12px; color: #666">
+        统编版七年级上第一单元第一课 | 状态：编辑中
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar-left">
+        <div class="sidebar-header">🏷️ 知识点图谱 (来自标签/Excel)</div>
+        <div class="knowledge-tree" id="knowledgeTree"></div>
+      </aside>
+
+      <main class="canvas-area">
+        <div class="strategy-bar">
+          <label>📚 教学思路模板：</label>
+          <select
+            class="strategy-select"
+            id="strategySelect"
+            onchange="loadStrategy()"
+          >
+            <option value="literacy">素养进阶式 (推荐)</option>
+            <option value="task">任务驱动式 (春日画册)</option>
+            <option value="scenario">情境式 (春日编辑部)</option>
+          </select>
+          <button
+            class="btn-mini"
+            onclick="addStage()"
+            style="
+              margin-left: auto;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              padding: 4px 8px;
+            "
+          >
+            + 添加空白环节
+          </button>
+        </div>
+
+        <div class="canvas-scroll" id="canvasContent"></div>
+      </main>
+
+      <aside class="sidebar-right">
+        <div class="preview-section">
+          <div class="preview-title">
+            <span>🎥 课件实时预览 (点击卡片)</span>
+            <span style="font-size: 10px; cursor: pointer">[全屏]</span>
+          </div>
+          <div class="slide-container" id="slidePreview">
+            <div class="slide-content" contenteditable="true">
+              <div
+                style="
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  color: #999;
+                  text-align: center;
+                "
+              >
+                <h3>请在中间画布<br />选择一个知识点卡片</h3>
+              </div>
+            </div>
+            <div class="slide-footer">Unit 1 Spring - Zhu Ziqing</div>
+          </div>
+        </div>
+
+        <div class="assets-section">
+          <div class="assets-tabs">
+            <div class="a-tab active" onclick="filterAssets('all')">
+              全部资源
+            </div>
+            <div class="a-tab" onclick="filterAssets('text')">文本</div>
+            <div class="a-tab" onclick="filterAssets('media')">图/视</div>
+            <div class="a-tab" onclick="filterAssets('tool')">工具</div>
+          </div>
+          <div class="assets-list" id="assetList"></div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      /**
+       * 数据源：根据用户提供的文档和图片内容提取
+       */
+      const knowledgeData = {
+        汉字词语: [
+          {
+            id: "k1",
+            title: "字音字形",
+            content:
+              "酝酿(yùn niàng), 窠巢(kē), 黄晕(yùn), 应和(hè), 嘹亮, 抖擞(sǒu)",
+            method: "朗读纠音/易错字检测",
+          },
+          {
+            id: "k2",
+            title: "字词释义",
+            content: "卖弄、宛转、花枝招展、赶趟儿、朗润",
+            method: "语境填空",
+          },
+          {
+            id: "k3",
+            title: "字词辨析",
+            content: "多音字辨析：涨(zhǎng/zhàng), 藏(cáng/zàng)",
+            method: "对比组词",
+          },
+        ],
+        作家作品: [
+          {
+            id: "k4",
+            title: "作者信息",
+            content:
+              "朱自清，字佩弦，号秋实。代表作《背影》《荷塘月色》。散文家、诗人。",
+            method: "知人论世/微课视频",
+          },
+          {
+            id: "k5",
+            title: "创作背景",
+            content: "写于1933年，展现作者对新生活的希望。",
+            method: "资料卡片阅读",
+          },
+        ],
+        文学体裁: [
+          {
+            id: "k6",
+            title: "写景抒情散文",
+            content: "寓情于景，情景交融的特点。",
+            method: "概念解析",
+          },
+        ],
+        内容与主题: [
+          {
+            id: "k7",
+            title: "文本内容",
+            content: "盼春 -> 绘春(五幅图) -> 赞春",
+            method: "思维导图梳理",
+          },
+          {
+            id: "k8",
+            title: "主题思想",
+            content:
+              "表现了春天旺盛的生命力，表达了作者热爱生活、积极进取的感情。",
+            method: "主旨升华/Slogan撰写",
+          },
+        ],
+        形象塑造: [
+          {
+            id: "k9",
+            title: "景物形象",
+            content: "春草(嫩绿软)、春花(繁茂艳)、春风(柔和)、春雨(细密)。",
+            method: "关键词圈画",
+          },
+        ],
+        结构布局: [
+          {
+            id: "k10",
+            title: "五幅图景",
+            content: "草、花、风、雨、人。",
+            method: "小组拼图",
+          },
+          {
+            id: "k11",
+            title: "结构递进",
+            content: "从宏观到微观，从物到人。",
+            method: "逻辑分析",
+          },
+        ],
+        语言技巧: [
+          {
+            id: "k12",
+            title: "修辞：比喻",
+            content: "结尾三段：像娃娃(新)、像小姑娘(美)、像青年(力)。",
+            method: "喻体分析/仿写",
+          },
+          {
+            id: "k13",
+            title: "修辞：拟人",
+            content: "“小草偷偷地从土里钻出来”，“花下蜜蜂闹着”。",
+            method: "情境还原/改写对比",
+          },
+          {
+            id: "k14",
+            title: "感官描写",
+            content: "触觉(吹面不寒)、嗅觉(泥土气息)、听觉(短笛)。",
+            method: "五感体验盲盒",
+          },
+          {
+            id: "k15",
+            title: "侧面描写",
+            content: "鸟鸣衬托春天的安适，蜜蜂衬托花多。",
+            method: "写作手法鉴赏",
+          },
+        ],
+        句式品析: [
+          {
+            id: "k16",
+            title: "倒装句",
+            content: "“小草偷偷地从土里钻出来，嫩嫩的，绿绿的。”(定语后置)",
+            method: "句式还原对比",
+          },
+        ],
+        词语品析: [
+          {
+            id: "k17",
+            title: "动词：钻",
+            content: "表现破土而出的挤劲和生命力。",
+            method: "换词实验(长/冒)",
+          },
+          {
+            id: "k18",
+            title: "叠词",
+            content: "偷偷地、轻悄悄、软绵绵。增强韵律感。",
+            method: "朗读重音分析",
+          },
+        ],
+        阅读方法: [
+          {
+            id: "k19",
+            title: "朗读技巧",
+            content: "重音(强调词)、停连(节奏)、语调(喜爱赞美)。",
+            method: "配音任务",
+          },
+        ],
+      };
+
+      const assetsData = [
+        {
+          id: "a1",
+          type: "text",
+          name: "生字词解析大全.txt",
+          content: "详细的字音字形解析文档...",
+          icon: "📄",
+        },
+        {
+          id: "a2",
+          type: "text",
+          name: "朱自清生平.txt",
+          content: "朱自清(1898-1948)...",
+          icon: "📄",
+        },
+        {
+          id: "a3",
+          type: "media",
+          name: "春草破土.gif",
+          content: "<img src='' alt='草' style='width:100%'>",
+          icon: "🖼️",
+        },
+        {
+          id: "a4",
+          type: "media",
+          name: "五幅图思维导图.png",
+          content: "<img src='' alt='Map'>",
+          icon: "🖼️",
+        },
+        {
+          id: "a5",
+          type: "media",
+          name: "全文朗读音频.mp3",
+          content: "[Audio Player]",
+          icon: "🔊",
+        },
+        {
+          id: "a6",
+          type: "tool",
+          name: "互动：叠词填空",
+          content: "Game: Fill in the blanks",
+          icon: "🧩",
+        },
+        {
+          id: "a7",
+          type: "tool",
+          name: "AI画板：绘春",
+          content: "AI Tool Frame",
+          icon: "🎨",
+        },
+        {
+          id: "a8",
+          type: "media",
+          name: "微课：比喻拟人辨析.mp4",
+          content: "[Video Player]",
+          icon: "🎬",
+        },
+      ];
+
+      const strategies = {
+        literacy: [
+          {
+            title: "环节一：初识·盼春之切",
+            task: "朗读导入，体会反复修辞",
+            cards: ["k1", "k7"],
+          },
+          {
+            title: "环节二：寻美·绘春之景",
+            task: "分小组认领五幅图，圈画描写手法",
+            cards: ["k10", "k9", "k17", "k18"],
+          },
+          {
+            title: "环节三：品韵·语言之妙",
+            task: "感官描写与修辞手法的深度赏析",
+            cards: ["k12", "k13", "k14"],
+          },
+          {
+            title: "环节四：悟情·赞春之意",
+            task: "结合背景，感悟生命力",
+            cards: ["k8", "k4"],
+          },
+        ],
+        task: [
+          {
+            title: "任务一：画册策划会 (结构)",
+            task: "理清脉络，为画册命名版块",
+            cards: ["k7", "k10"],
+          },
+          {
+            title: "任务二：摄影师采风 (画面)",
+            task: "寻找最美镜头，分析写景角度",
+            cards: ["k9", "k14", "k15"],
+          },
+          {
+            title: "任务三：配音导演 (朗读)",
+            task: "为画册宣传片配音，定语调",
+            cards: ["k1", "k19"],
+          },
+          {
+            title: "任务四：文案主编 (主旨)",
+            task: "撰写画册卷首语，点明主题",
+            cards: ["k8", "k12"],
+          },
+        ],
+        scenario: [
+          {
+            title: "第一幕：春日编辑部成立",
+            task: "知人论世，确定刊物基调",
+            cards: ["k4", "k5"],
+          },
+          {
+            title: "第二幕：栏目设计工作坊",
+            task: "拆解文本结构，设置专栏",
+            cards: ["k11", "k7"],
+          },
+          {
+            title: "第三幕：魔法修辞研修班",
+            task: "学习让文字生动的'魔法'",
+            cards: ["k13", "k12", "k16"],
+          },
+          {
+            title: "第四幕：刊物终审发布",
+            task: "朗读展示，情感升华",
+            cards: ["k19"],
+          },
+        ],
+      };
+
+      // 状态管理
+      let currentStages = [];
+      let selectedComponent = null; // {type: 'card', stageIdx, cardIdx}
+
+      // 初始化
+      window.onload = function () {
+        renderKnowledgeTree();
+        renderAssets("all");
+        loadStrategy(); // 默认加载
+      };
+
+      // --- 1. 渲染知识库 ---
+      function renderKnowledgeTree() {
+        const container = document.getElementById("knowledgeTree");
+        Object.keys(knowledgeData).forEach((cat, index) => {
+          const catHtml = `
+                <div class="kp-category">
+                    <div class="kp-cat-title" onclick="toggleCat(this)">
+                        <span>📂 ${cat}</span> <span>▼</span>
+                    </div>
+                    <div class="kp-list ${index < 3 ? "active" : ""}"> ${knowledgeData[
+                      cat
+                    ]
+                      .map(
+                        (k) => `
+                            <div class="kp-item" draggable="true" ondragstart="dragKnowledge(event, '${k.id}', '${k.title}', '${k.content}', '${k.method}')">
+                                <div>${k.title}</div>
+                                <div style="color:#999;font-size:10px;">${k.method}</div>
+                            </div>
+                        `,
+                      )
+                      .join("")}
+                    </div>
+                </div>
+            `;
+          container.innerHTML += catHtml;
+        });
+      }
+
+      function toggleCat(el) {
+        const list = el.nextElementSibling;
+        list.classList.toggle("active");
+      }
+
+      // --- 2. 渲染素材库 ---
+      function renderAssets(filter) {
+        const container = document.getElementById("assetList");
+        container.innerHTML = "";
+        const list =
+          filter === "all"
+            ? assetsData
+            : assetsData.filter(
+                (a) =>
+                  a.type === filter ||
+                  (filter === "media" &&
+                    (a.type === "image" || a.type === "video")),
+              );
+
+        list.forEach((asset) => {
+          const div = document.createElement("div");
+          div.className = "asset-item";
+          div.draggable = true;
+          div.innerHTML = `
+                <div class="asset-thumb">${asset.icon}</div>
+                <div class="asset-name">${asset.name}</div>
+            `;
+          div.ondragstart = (e) => {
+            e.dataTransfer.setData("type", "asset");
+            e.dataTransfer.setData("assetId", asset.id);
+            e.dataTransfer.setData("assetIcon", asset.icon);
+          };
+          container.appendChild(div);
+        });
+      }
+
+      window.filterAssets = function (type) {
+        document
+          .querySelectorAll(".a-tab")
+          .forEach((t) => t.classList.remove("active"));
+        event.target.classList.add("active");
+        renderAssets(type);
+      };
+
+      // --- 3. 拖拽逻辑核心 ---
+      window.dragKnowledge = function (e, id, title, content, method) {
+        e.dataTransfer.setData("type", "knowledge");
+        e.dataTransfer.setData("kId", id);
+        e.dataTransfer.setData("title", title);
+        e.dataTransfer.setData("content", content);
+        e.dataTransfer.setData("method", method);
+      };
+
+      // --- 4. 教学思路加载与画布渲染 ---
+      window.loadStrategy = function () {
+        const key = document.getElementById("strategySelect").value;
+        const tmpl = strategies[key];
+
+        currentStages = tmpl.map((t) => ({
+          id: Date.now() + Math.random(),
+          title: t.title,
+          desc: t.task,
+          cards: t.cards
+            .map((kid) => {
+              // 查找完整数据
+              let fullData = null;
+              for (let c in knowledgeData) {
+                let found = knowledgeData[c].find((x) => x.id === kid);
+                if (found) fullData = found;
+              }
+              return fullData
+                ? {
+                    ...fullData,
+                    uniqueId: Math.random(),
+                    assets: [],
+                  }
+                : null;
+            })
+            .filter((c) => c),
+        }));
+
+        renderCanvas();
+      };
+
+      window.addStage = function () {
+        currentStages.push({
+          id: Date.now(),
+          title: "新教学环节 (点击修改)",
+          desc: "请拖入任务或知识点",
+          cards: [],
+        });
+        renderCanvas();
+        // 滚动到底部
+        const c = document.getElementById("canvasContent");
+        setTimeout(() => (c.scrollTop = c.scrollHeight), 100);
+      };
+
+      function renderCanvas() {
+        const container = document.getElementById("canvasContent");
+        container.innerHTML = "";
+
+        currentStages.forEach((stage, sIdx) => {
+          const stageEl = document.createElement("div");
+          stageEl.className = "stage-box";
+
+          // 环节头
+          stageEl.innerHTML = `
+                <div class="stage-header">
+                    <span style="font-size:20px; margin-right:5px;">📌</span>
+                    <input class="stage-title" value="${stage.title}" oninput="updateStageTitle(${sIdx}, this.value)">
+                    <span class="stage-meta">任务链：${stage.desc}</span>
+                    <button class="btn-mini" onclick="removeStage(${sIdx})" style="margin-left:auto;">✖</button>
+                </div>
+                <div class="card-flow" id="stage-flow-${sIdx}">
+                    </div>
+            `;
+
+          // 拖拽监听 (环节接受知识点)
+          stageEl.ondragover = (e) => {
+            e.preventDefault();
+            stageEl.classList.add("drag-over");
+          };
+          stageEl.ondragleave = () => stageEl.classList.remove("drag-over");
+          stageEl.ondrop = (e) => {
+            e.preventDefault();
+            stageEl.classList.remove("drag-over");
+            const type = e.dataTransfer.getData("type");
+            if (type === "knowledge") {
+              const kData = {
+                id: e.dataTransfer.getData("kId"),
+                title: e.dataTransfer.getData("title"),
+                content: e.dataTransfer.getData("content"),
+                method: e.dataTransfer.getData("method"),
+                uniqueId: Math.random(),
+                assets: [],
+              };
+              currentStages[sIdx].cards.push(kData);
+              renderCanvas();
+            }
+          };
+
+          // 渲染卡片
+          const flow = stageEl.querySelector(".card-flow");
+          stage.cards.forEach((card, cIdx) => {
+            const cardEl = document.createElement("div");
+            const isSelected =
+              selectedComponent &&
+              selectedComponent.stageIdx === sIdx &&
+              selectedComponent.cardIdx === cIdx;
+            cardEl.className = `k-card ${isSelected ? "selected" : ""}`;
+            cardEl.innerHTML = `
+                    <div class="k-card-head">
+                        <span>${card.title}</span>
+                        <span class="btn-mini" onclick="removeCard(event, ${sIdx}, ${cIdx})">✕</span>
+                    </div>
+                    <div class="k-card-body">
+                        <div>${card.content.substring(0, 30)}...</div>
+                        <div class="k-card-method">📚 ${card.method}</div>
+                    </div>
+                    <div class="k-card-assets">
+                        ${card.assets.map((a) => `<div class="asset-icon-mini" title="可点击预览">${a.icon}</div>`).join("")}
+                    </div>
+                `;
+
+            // 点击选中
+            cardEl.onclick = (e) => {
+              e.stopPropagation();
+              selectCard(sIdx, cIdx);
+            };
+
+            // 卡片接受素材拖拽
+            const assetArea = cardEl.querySelector(".k-card-assets");
+            assetArea.ondragover = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              assetArea.classList.add("drag-over");
+            };
+            assetArea.ondragleave = (e) => {
+              e.stopPropagation();
+              assetArea.classList.remove("drag-over");
+            };
+            assetArea.ondrop = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              assetArea.classList.remove("drag-over");
+              const type = e.dataTransfer.getData("type");
+              if (type === "asset") {
+                const newAsset = {
+                  id: e.dataTransfer.getData("assetId"),
+                  icon: e.dataTransfer.getData("assetIcon"),
+                };
+                currentStages[sIdx].cards[cIdx].assets.push(newAsset);
+                renderCanvas();
+                if (isSelected) updatePreview(); // 刷新预览
+              }
+            };
+
+            // 拖拽排序 (简化版，仅允许拖拽卡片改变顺序)
+            cardEl.draggable = true;
+            cardEl.ondragstart = (e) => {
+              e.dataTransfer.setData("type", "reorder-card");
+              e.dataTransfer.setData("fromS", sIdx);
+              e.dataTransfer.setData("fromC", cIdx);
+            };
+            cardEl.ondrop = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const type = e.dataTransfer.getData("type");
+              if (type === "reorder-card") {
+                const fS = e.dataTransfer.getData("fromS");
+                const fC = e.dataTransfer.getData("fromC");
+                // 移动逻辑
+                const movingCard = currentStages[fS].cards[fC];
+                currentStages[fS].cards.splice(fC, 1);
+                currentStages[sIdx].cards.splice(cIdx, 0, movingCard);
+                renderCanvas();
+              }
+            };
+
+            flow.appendChild(cardEl);
+          });
+
+          container.appendChild(stageEl);
+        });
+      }
+
+      // --- 5. 更新逻辑 ---
+      window.updateStageTitle = (idx, val) => (currentStages[idx].title = val);
+      window.removeStage = (idx) => {
+        if (confirm("确定删除该环节？")) {
+          currentStages.splice(idx, 1);
+          renderCanvas();
+        }
+      };
+      window.removeCard = (e, sIdx, cIdx) => {
+        e.stopPropagation();
+        currentStages[sIdx].cards.splice(cIdx, 1);
+        renderCanvas();
+        // 如果删除了选中的
+        if (
+          selectedComponent &&
+          selectedComponent.stageIdx == sIdx &&
+          selectedComponent.cardIdx == cIdx
+        ) {
+          selectedComponent = null;
+          document.querySelector(".slide-content").innerHTML =
+            "<div style='text-align:center; color:#999; margin-top:50px;'>无选中卡片</div>";
+        }
+      };
+
+      // --- 6. 预览逻辑 ---
+      function selectCard(sIdx, cIdx) {
+        selectedComponent = { stageIdx: sIdx, cardIdx: cIdx };
+        renderCanvas(); // 刷新选中边框
+        updatePreview();
+      }
+
+      function updatePreview() {
+        const { stageIdx, cardIdx } = selectedComponent;
+        const card = currentStages[stageIdx].cards[cardIdx];
+
+        // 构建简单的课件HTML
+        const assetsHTML = card.assets
+          .map((a) => {
+            const assetInfo = assetsData.find((x) => x.id === a.id);
+            return `<div style="display:inline-block; margin:5px; padding:10px; background:#f5f5f5; border:1px solid #ddd; border-radius:4px; text-align:center;">
+                <div style="font-size:24px;">${a.icon}</div>
+                <div style="font-size:10px;">${assetInfo ? assetInfo.name : "Asset"}</div>
+            </div>`;
+          })
+          .join("");
+
+        const html = `
+            <h1 style="color:#2e7d32; border-bottom:2px solid #ff6f00; display:inline-block; padding-bottom:5px;">${card.title}</h1>
+            <div style="margin-top:20px; font-size:16px; line-height:1.6;">
+                <p><strong>讲授重点：</strong>${card.content}</p>
+                <div style="background:#e8f5e9; padding:10px; margin-top:10px; border-radius:4px; color:#2e7d32;">
+                    <strong>📚 教学活动：</strong>${card.method}
+                </div>
+            </div>
+            <div style="margin-top:20px; border-top:1px dashed #ccc; padding-top:10px;">
+                <div style="font-size:12px; color:#888; margin-bottom:5px;">本页关联素材资源：</div>
+                ${assetsHTML || '<span style="color:#ccc; font-size:12px;">(暂无素材，请拖拽添加)</span>'}
+            </div>
+        `;
+
+        document.querySelector(".slide-content").innerHTML = html;
+      }
+    </script>
+  </body>
+</html>

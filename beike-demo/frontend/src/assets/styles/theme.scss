@@ -1,0 +1,384 @@
+// 清冷明亮风格主题
+
+// 颜色变量 - 清冷明亮风格
+$primary-light: #e0f2fe; // 极浅冰蓝
+$primary-color: #38bdf8; // 清冷天蓝
+$secondary-color: #0ea5e9; // 明亮蓝
+$accent-color: #0284c7; // 强调蓝
+$accent-light: #7dd3fc; // 浅天蓝
+$background-light: #f8fafc; // 极浅背景
+$background-color: #f0f9ff; // 冰蓝背景
+$text-primary: #0c4a6e; // 深蓝文本
+$text-secondary: #075985; // 中蓝文本
+$text-light: #0284c7; // 亮蓝文本
+$border-color: #bae6fd; // 浅蓝边框
+$hover-color: #0ea5e9; // 悬停蓝
+$surface-color: #ffffff; // 纯白表面
+$surface-elevated: #f0f9ff; // 冰蓝表面
+$sidebar-bg: #f0f9ff; // 侧边栏背景
+$sidebar-active: #e0f2fe; // 侧边栏激活态
+
+// 字体
+$font-family-base: "Source Han Sans CN", "Noto Sans SC", sans-serif;
+$font-family-code: Monaco, Consolas, "Courier New", monospace;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// 圆角
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+// 阴影
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+// 全局样式
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: $font-family-base;
+  background-color: $background-color;
+  color: $text-primary;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// 布局容器
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+// 顶部导航栏
+.app-header {
+  height: 64px;
+  background-color: $primary-color;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 $spacing-lg;
+  box-shadow: $shadow-md;
+  z-index: 1000;
+
+  .logo {
+    font-size: 20px;
+    font-weight: bold;
+    margin-right: $spacing-lg;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+}
+
+// 侧边栏
+.app-sidebar {
+  width: 220px;
+  background-color: white;
+  border-right: 1px solid $border-color;
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-md 0;
+  overflow-y: auto;
+
+  &.collapsed {
+    width: 64px;
+
+    .menu-item-text {
+      display: none;
+    }
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: $spacing-md $spacing-lg;
+    color: $text-primary;
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba($accent-color, 0.1);
+      color: $accent-color;
+    }
+
+    &.active {
+      background-color: rgba($accent-color, 0.15);
+      color: $accent-color;
+      border-right: 3px solid $accent-color;
+    }
+
+    .menu-icon {
+      font-size: 20px;
+      margin-right: $spacing-md;
+      min-width: 20px;
+    }
+
+    .menu-item-text {
+      font-size: 14px;
+    }
+
+    .star {
+      margin-left: $spacing-xs;
+      color: #ffd700;
+    }
+  }
+}
+
+// 主内容区
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-lg;
+  background-color: $background-color;
+}
+
+// 卡片样式
+.card {
+  background-color: white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $border-color;
+
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: $text-primary;
+    }
+  }
+
+  &-body {
+    color: $text-primary;
+  }
+}
+
+// 按钮样式
+.btn {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-sm;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  outline: none;
+
+  &-primary {
+    background-color: $accent-color;
+    color: white;
+
+    &:hover {
+      background-color: $hover-color;
+    }
+  }
+
+  &-secondary {
+    background-color: $secondary-color;
+    color: white;
+
+    &:hover {
+      background-color: lighten($secondary-color, 10%);
+    }
+  }
+
+  &-outline {
+    background-color: transparent;
+    border: 1px solid $accent-color;
+    color: $accent-color;
+
+    &:hover {
+      background-color: rgba($accent-color, 0.1);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// AI助手浮窗
+.ai-assistant-fab {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: $accent-color;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: $shadow-lg;
+  transition: all 0.3s;
+  z-index: 1000;
+
+  &:hover {
+    background-color: $hover-color;
+    transform: scale(1.1);
+  }
+
+  .icon {
+    font-size: 24px;
+  }
+}
+
+.ai-assistant-dialog {
+  position: fixed;
+  bottom: 100px;
+  right: 32px;
+  width: 400px;
+  height: 600px;
+  background-color: white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+
+  .dialog-header {
+    padding: $spacing-md;
+    background-color: $primary-color;
+    color: white;
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .close-btn {
+      cursor: pointer;
+      font-size: 20px;
+    }
+  }
+
+  .dialog-body {
+    flex: 1;
+    padding: $spacing-md;
+    overflow-y: auto;
+  }
+
+  .dialog-footer {
+    padding: $spacing-md;
+    border-top: 1px solid $border-color;
+    display: flex;
+    gap: $spacing-sm;
+  }
+}
+
+// 表格样式
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+
+  thead {
+    background-color: $secondary-color;
+    color: white;
+
+    th {
+      padding: $spacing-md;
+      text-align: left;
+      font-weight: bold;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $border-color;
+
+      &:hover {
+        background-color: rgba($accent-color, 0.05);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: $spacing-md;
+      color: $text-primary;
+    }
+  }
+}
+
+// 加载动画
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid $border-color;
+    border-top-color: $accent-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 标签
+.tag {
+  display: inline-block;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: 12px;
+  background-color: rgba($accent-color, 0.1);
+  color: $accent-color;
+  margin-right: $spacing-xs;
+}
+
+// 响应式
+@media (max-width: 1280px) {
+  .app-sidebar {
+    width: 64px;
+
+    .menu-item-text {
+      display: none;
+    }
+  }
+
+  .ai-assistant-dialog {
+    width: 350px;
+    height: 500px;
+  }
+}
