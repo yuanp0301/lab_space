@@ -1,0 +1,1712 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>教学灵感集市 | 点亮课堂的每一分钟</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --bg-body: #f1f5f9;
+        --bg-white: #ffffff;
+        --text-main: #1e293b;
+        --text-sub: #64748b;
+        --border: #e2e8f0;
+
+        /* 学科色标 */
+        --c-chi: #be123c;
+        --c-mat: #1d4ed8;
+        --c-eng: #b45309;
+        --c-phy: #7c3aed;
+        --c-che: #059669;
+        --c-bio: #65a30d;
+        --c-his: #78350f;
+        --c-geo: #0891b2;
+        --c-pol: #db2777;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+      body {
+        background: var(--bg-body);
+        color: var(--text-main);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* --- 1. 顶部导航 --- */
+      .navbar {
+        height: 64px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+        flex-shrink: 0;
+        z-index: 50;
+      }
+      .logo {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .nav-items {
+        display: flex;
+        gap: 3rem;
+        margin-left: 2rem;
+      }
+      .nav-item {
+        cursor: pointer;
+        color: var(--text-sub);
+        font-weight: 500;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        border-bottom: 3px solid transparent;
+        transition: 0.2s;
+        font-size: 1rem;
+      }
+      .nav-item:hover {
+        color: var(--primary);
+      }
+      .nav-item.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        font-weight: 700;
+      }
+
+      .btn-create {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 9px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+        margin-left: auto;
+      }
+      .btn-create:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+      }
+
+      /* --- 2. 主视图容器 --- */
+      .view-container {
+        flex: 1;
+        position: relative;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+      }
+      .page-view {
+        display: none;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeIn 0.3s ease;
+      }
+      .page-view.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ====== A. 灵感集市 ====== */
+      .hero-section {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1rem 0;
+      }
+      .hero-slogan {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        color: var(--text-main);
+        letter-spacing: -1px;
+        background: linear-gradient(135deg, #1e293b 0%, #4f46e5 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .search-box {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto 1.5rem;
+      }
+      .search-input {
+        width: 100%;
+        padding: 14px 50px 14px 20px;
+        border-radius: 50px;
+        border: 2px solid var(--border);
+        font-size: 1rem;
+        outline: none;
+        transition: 0.2s;
+      }
+      .search-input:focus {
+        border-color: var(--primary);
+      }
+      .search-btn {
+        position: absolute;
+        right: 6px;
+        top: 6px;
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .filter-bar {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+      }
+      .filter-pill {
+        padding: 6px 16px;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        cursor: pointer;
+        color: var(--text-sub);
+        transition: 0.2s;
+        font-size: 0.9rem;
+      }
+      .filter-pill:hover,
+      .filter-pill.active {
+        background: #eef2ff;
+        color: var(--primary);
+        border-color: var(--primary);
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary);
+      }
+      .card-img {
+        height: 140px;
+        background: #e2e8f0;
+        position: relative;
+        overflow: hidden;
+      }
+      .card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+      }
+      .card:hover .card-img img {
+        transform: scale(1.05);
+      }
+
+      /* 核心修改：标签样式 */
+      .card-tag {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+      }
+
+      .card-body {
+        padding: 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .card-title {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+        color: var(--text-main);
+      }
+      .card-desc {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 0.8rem;
+      }
+      .card-footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        border-top: 1px solid #f1f5f9;
+        padding-top: 8px;
+      }
+
+      /* ====== B. 教研社区 (双列 Feed 流) ====== */
+      .community-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .publisher-box {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+      .pub-input {
+        width: 100%;
+        border: none;
+        font-size: 1rem;
+        resize: none;
+        outline: none;
+        margin-bottom: 1rem;
+        min-height: 60px;
+        font-family: inherit;
+      }
+      .pub-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 10px;
+      }
+      .pub-tools {
+        display: flex;
+        gap: 15px;
+        color: var(--primary);
+        cursor: pointer;
+        font-size: 1.2rem;
+      }
+      .pub-btn {
+        background: var(--primary);
+        color: white;
+        padding: 6px 20px;
+        border-radius: 20px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .community-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+      }
+      .feed-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .feed-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1rem;
+      }
+      .avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ccc;
+        flex-shrink: 0;
+      }
+      .feed-content {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        color: var(--text-main);
+        flex: 1;
+      }
+
+      .feed-resource {
+        display: flex;
+        gap: 15px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-bottom: 1rem;
+      }
+      .feed-resource:hover {
+        border-color: var(--primary);
+      }
+      .feed-res-img {
+        width: 80px;
+        height: 80px;
+        background: #ddd;
+        flex-shrink: 0;
+      }
+      .feed-res-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .feed-res-info {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .feed-actions {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        border-top: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
+        color: var(--text-sub);
+        margin-top: auto;
+      }
+      .action-btn {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.2s;
+      }
+      .action-btn:hover {
+        color: var(--primary);
+      }
+
+      .comment-section {
+        margin-top: 1rem;
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+      }
+      .comment-item {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+      }
+      .comment-avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #cbd5e1;
+      }
+      .comment-content span {
+        font-weight: 700;
+        margin-right: 5px;
+        color: #334155;
+      }
+      .comment-content p {
+        display: inline;
+        color: #475569;
+      }
+
+      /* ====== C. 我的备课本 ====== */
+      .prep-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        border: 2px dashed var(--border);
+        border-radius: 12px;
+        background: white;
+      }
+      .folder-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+      }
+      .folder {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .folder:hover {
+        border-color: var(--primary);
+        background: #eef2ff;
+      }
+
+      /* ====== D. 创作引导页 ====== */
+      .create-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        text-align: center;
+        padding-top: 2rem;
+      }
+      .create-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        margin-top: 3rem;
+      }
+      .mode-card {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: left;
+        cursor: pointer;
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      .mode-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      /* ====== 全局弹窗: 预览 ====== */
+      .modal-mask {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+      }
+      .preview-modal {
+        width: 90%;
+        max-width: 1000px;
+        height: 80vh;
+        background: white;
+        border-radius: 16px;
+        display: flex;
+        overflow: hidden;
+      }
+      .preview-content {
+        flex: 2;
+        background: #000;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .preview-sidebar {
+        flex: 1;
+        padding: 2rem;
+        background: white;
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ====== 编辑器: H5 制作台 (专业版) ====== */
+      .editor-full {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #f1f5f9;
+        z-index: 3000;
+        display: none;
+        flex-direction: column;
+      }
+      .editor-header {
+        height: 56px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .h5-workspace {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+      }
+
+      /* 左栏 */
+      .h5-left {
+        width: 280px;
+        background: white;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+      .h5-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+      }
+      .h5-tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        border-bottom: 2px solid transparent;
+      }
+      .h5-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        font-weight: 700;
+      }
+      .h5-panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+      }
+
+      /* 中间画布 */
+      .h5-center {
+        flex: 1;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+      }
+      .canvas-frame {
+        width: 100%;
+        height: 100%;
+        background: white;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      /* 右栏属性 */
+      .h5-right {
+        width: 240px;
+        background: white;
+        border-left: 1px solid var(--border);
+        padding: 1rem;
+      }
+      .prop-group {
+        margin-bottom: 1.5rem;
+      }
+      .prop-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .prop-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+
+      /* 模拟组件 */
+      .comp-item {
+        padding: 10px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .comp-item:hover {
+        border-color: var(--primary);
+      }
+
+      /* AI 聊天气泡 */
+      .chat-row {
+        display: flex;
+        margin-bottom: 10px;
+        gap: 8px;
+      }
+      .chat-bubble {
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        max-width: 90%;
+        line-height: 1.4;
+      }
+      .chat-ai {
+        background: #f1f5f9;
+        color: #333;
+      }
+      .chat-user {
+        background: var(--primary);
+        color: white;
+        margin-left: auto;
+      }
+
+      /* 编辑器 2: 课程流 */
+      .flow-tracks {
+        flex: 1;
+        background: #e2e8f0;
+        padding: 20px;
+        overflow-x: auto;
+      }
+      .track {
+        background: white;
+        height: 80px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+      }
+      .track-item {
+        height: 60px;
+        background: var(--primary);
+        color: white;
+        border-radius: 4px;
+        position: absolute;
+        left: 100px;
+        width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: move;
+        font-size: 0.8rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      /* 编辑器 3: PPT */
+      .ppt-canvas {
+        flex: 1;
+        background: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .slide-preview {
+        width: 800px;
+        height: 450px;
+        background: white;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+      .interactive-layer {
+        position: absolute;
+        top: 50px;
+        left: 100px;
+        width: 200px;
+        height: 100px;
+        border: 2px dashed var(--primary);
+        background: rgba(79, 70, 229, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      /* 真实生成的组件样式 */
+      .interactive-demo {
+        border: 2px solid var(--primary);
+        padding: 2rem;
+        border-radius: 12px;
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fafafa;
+        animation: popIn 0.5s ease;
+      }
+      @keyframes popIn {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .demo-btn {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: left;
+        transition: 0.2s;
+      }
+      .demo-btn:hover {
+        border-color: var(--primary);
+        background: #eef2ff;
+      }
+      .demo-btn.correct {
+        background: #dcfce7;
+        border-color: #16a34a;
+        color: #16a34a;
+        font-weight: bold;
+      }
+      .demo-btn.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+        color: #dc2626;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo" onclick="switchView('market')">
+        <i class="fa-solid fa-shapes"></i> 教学灵感集市
+      </div>
+      <div class="nav-items">
+        <div
+          class="nav-item active"
+          id="nav-market"
+          onclick="switchView('market')"
+        >
+          灵感集市
+        </div>
+        <div
+          class="nav-item"
+          id="nav-community"
+          onclick="switchView('community')"
+        >
+          教研社区
+        </div>
+        <div class="nav-item" id="nav-prep" onclick="switchView('prep')">
+          我的备课本
+        </div>
+      </div>
+      <button class="btn-create" onclick="switchView('create')">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> 开始创作
+      </button>
+    </nav>
+
+    <div class="view-container">
+      <div id="view-market" class="page-view active">
+        <div class="hero-section">
+          <h1 class="hero-slogan">好灵感，创造精彩课堂</h1>
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="搜索知识点、教学环节、活动工具..."
+            />
+            <div class="search-btn">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+          </div>
+          <div class="filter-bar" id="filterBar">
+            <div class="filter-pill active" onclick="filterGrid('all', this)">
+              全部
+            </div>
+            <div class="filter-pill" onclick="filterGrid('语文', this)">
+              语文
+            </div>
+            <div class="filter-pill" onclick="filterGrid('数学', this)">
+              数学
+            </div>
+            <div class="filter-pill" onclick="filterGrid('英语', this)">
+              英语
+            </div>
+            <div class="filter-pill" onclick="filterGrid('物理', this)">
+              物理
+            </div>
+            <div class="filter-pill" onclick="filterGrid('化学', this)">
+              化学
+            </div>
+            <div class="filter-pill" onclick="filterGrid('生物', this)">
+              生物
+            </div>
+            <div class="filter-pill" onclick="filterGrid('历史', this)">
+              历史
+            </div>
+            <div class="filter-pill" onclick="filterGrid('地理', this)">
+              地理
+            </div>
+            <div class="filter-pill" onclick="filterGrid('政治', this)">
+              政治
+            </div>
+          </div>
+        </div>
+        <div class="grid" id="marketGrid"></div>
+      </div>
+
+      <div id="view-community" class="page-view">
+        <div class="community-container">
+          <div class="publisher-box">
+            <textarea
+              class="pub-input"
+              placeholder="分享您的教学灵感，或发布求助..."
+            ></textarea>
+            <div class="pub-toolbar">
+              <div class="pub-tools">
+                <i class="fa-regular fa-image" title="图片"></i>
+                <i class="fa-solid fa-link" title="链接"></i>
+                <i class="fa-solid fa-hashtag" title="话题"></i>
+              </div>
+              <button class="pub-btn" onclick="alert('发布成功！')">
+                发布
+              </button>
+            </div>
+          </div>
+          <div id="feedList" class="community-grid"></div>
+        </div>
+      </div>
+
+      <div id="view-prep" class="page-view">
+        <h2 style="margin-bottom: 1.5rem">我的备课空间</h2>
+        <div class="folder-grid">
+          <div class="folder">
+            <i
+              class="fa-solid fa-folder-closed"
+              style="font-size: 3rem; color: #f59e0b; margin-bottom: 10px"
+            ></i>
+            <h4>我的收藏</h4>
+          </div>
+          <div class="folder">
+            <i
+              class="fa-solid fa-folder-closed"
+              style="font-size: 3rem; color: #f59e0b; margin-bottom: 10px"
+            ></i>
+            <h4>自制资源</h4>
+          </div>
+          <div class="folder" style="border-style: dashed; color: #999">
+            <i
+              class="fa-solid fa-plus"
+              style="font-size: 2rem; margin-bottom: 10px"
+            ></i>
+            <h4>新建文件夹</h4>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-create" class="page-view">
+        <div class="create-container">
+          <h1>创作中心</h1>
+          <p style="color: var(--text-sub)">选择模式，开始您的教学设计</p>
+          <div class="create-grid">
+            <div class="mode-card" onclick="openEditor('h5')">
+              <i
+                class="fa-solid fa-wand-magic-sparkles"
+                style="
+                  font-size: 2rem;
+                  color: var(--primary);
+                  margin-bottom: 1rem;
+                "
+              ></i>
+              <h3>交互 H5 制作</h3>
+              <p style="color: #666; margin: 10px 0">
+                AI 对话生成 + 模块化编辑。<br />适合制作：测验、游戏、仿真。
+              </p>
+              <span style="color: var(--primary); font-weight: 600"
+                >进入制作 &rarr;</span
+              >
+            </div>
+            <div class="mode-card" onclick="openEditor('flow')">
+              <i
+                class="fa-solid fa-timeline"
+                style="font-size: 2rem; color: #059669; margin-bottom: 1rem"
+              ></i>
+              <h3>课程流编排</h3>
+              <p style="color: #666; margin: 10px 0">
+                时间轴式设计全堂课。<br />适合制作：45分钟完整教案。
+              </p>
+            </div>
+            <div class="mode-card" onclick="openEditor('ppt')">
+              <i
+                class="fa-solid fa-file-powerpoint"
+                style="font-size: 2rem; color: #b45309; margin-bottom: 1rem"
+              ></i>
+              <h3>课件导入增强</h3>
+              <p style="color: #666; margin: 10px 0">
+                上传 PPT，叠加互动图层。<br />适合制作：翻页互动课件。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask" id="previewModal">
+      <div class="preview-modal">
+        <div class="preview-content">
+          <button
+            onclick="alert('运行预览中...')"
+            style="
+              border: 1px solid white;
+              background: rgba(0, 0, 0, 0.5);
+              color: white;
+              padding: 10px 20px;
+              border-radius: 20px;
+              cursor: pointer;
+            "
+          >
+            <i class="fa-solid fa-play"></i> 运行交互
+          </button>
+        </div>
+        <div class="preview-sidebar">
+          <h2 id="modalTitle">标题</h2>
+          <div style="margin: 10px 0; display: flex; gap: 10px">
+            <button
+              onclick="alert('已加入评价')"
+              style="
+                flex: 1;
+                padding: 5px;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 4px;
+              "
+            >
+              👍 推荐
+            </button>
+            <button
+              onclick="alert('已加入备课本')"
+              style="
+                flex: 1;
+                padding: 5px;
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 4px;
+              "
+            >
+              + 加入备课本
+            </button>
+          </div>
+          <p id="modalDesc" style="color: #666; line-height: 1.6">描述</p>
+          <div
+            style="
+              margin-top: auto;
+              border-top: 1px solid #eee;
+              padding-top: 1rem;
+            "
+          >
+            <h4>评价 (3)</h4>
+            <div style="font-size: 0.8rem; color: #666; margin-top: 5px">
+              张老师: 很好用！
+            </div>
+          </div>
+          <button
+            onclick="
+              document.getElementById('previewModal').style.display = 'none'
+            "
+            style="
+              margin-top: 10px;
+              border: none;
+              background: none;
+              cursor: pointer;
+              color: #999;
+            "
+          >
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor-full" id="editor-h5">
+      <div class="editor-header">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button
+            onclick="closeEditor('h5')"
+            style="border: none; background: none; cursor: pointer"
+          >
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <strong>H5 交互制作台</strong>
+        </div>
+        <div>
+          <button
+            style="
+              border: 1px solid #ddd;
+              background: white;
+              padding: 6px 16px;
+              border-radius: 6px;
+              margin-right: 10px;
+              cursor: pointer;
+            "
+          >
+            预览
+          </button>
+          <button
+            style="
+              background: var(--primary);
+              color: white;
+              border: none;
+              padding: 6px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+            "
+          >
+            发布
+          </button>
+        </div>
+      </div>
+      <div class="h5-workspace">
+        <div class="h5-left">
+          <div class="h5-tabs">
+            <div class="h5-tab active" onclick="switchH5Tab(this, 'p-ai')">
+              AI 助手
+            </div>
+            <div class="h5-tab" onclick="switchH5Tab(this, 'p-comp')">
+              组件库
+            </div>
+          </div>
+          <div id="p-ai" class="h5-panel-content">
+            <div
+              style="
+                height: 300px;
+                overflow-y: auto;
+                border: 1px solid #eee;
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 10px;
+              "
+              id="aiChatBox"
+            >
+              <div class="chat-row chat-ai">
+                <div class="chat-bubble">
+                  我是AI助手，请告诉我您想生成的互动。
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 5px">
+              <input
+                type="text"
+                id="aiCmd"
+                placeholder="例如：生成一个物理题"
+                style="
+                  flex: 1;
+                  padding: 6px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              />
+              <button
+                onclick="runAI()"
+                style="
+                  background: var(--primary);
+                  color: white;
+                  border: none;
+                  padding: 6px 10px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                "
+              >
+                发送
+              </button>
+            </div>
+          </div>
+          <div id="p-comp" class="h5-panel-content" style="display: none">
+            <div class="comp-item">
+              <i class="fa-regular fa-square"></i> 按钮
+            </div>
+            <div class="comp-item"><i class="fa-solid fa-font"></i> 文本</div>
+          </div>
+        </div>
+        <div class="h5-center">
+          <div class="canvas-frame">
+            <div
+              style="
+                height: 30px;
+                background: #f1f5f9;
+                border-bottom: 1px solid #eee;
+              "
+            ></div>
+            <div
+              style="flex: 1; padding: 20px; position: relative"
+              id="canvasContent"
+            >
+              <div style="text-align: center; color: #ccc; margin-top: 20%">
+                画布区域 (所见即所得)
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="h5-right">
+          <h4>属性面板</h4>
+          <div style="margin-top: 20px">
+            <div class="prop-group">
+              <label class="prop-label">宽度</label
+              ><input type="text" class="prop-input" value="100%" />
+            </div>
+            <div class="prop-group">
+              <label class="prop-label">高度</label
+              ><input type="text" class="prop-input" value="Auto" />
+            </div>
+            <div class="prop-group">
+              <label class="prop-label">背景色</label
+              ><input type="color" style="width: 100%" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor-full" id="editor-flow">
+      <div class="editor-header">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button
+            onclick="closeEditor('flow')"
+            style="border: none; background: none; cursor: pointer"
+          >
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <strong>课程流编排</strong>
+        </div>
+        <button
+          style="
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+          "
+        >
+          保存
+        </button>
+      </div>
+      <div class="editor-body">
+        <div
+          style="
+            width: 200px;
+            background: white;
+            border-right: 1px solid #ddd;
+            padding: 1rem;
+          "
+        >
+          <h4>组件库</h4>
+          <div
+            style="
+              padding: 10px;
+              background: #f1f5f9;
+              margin-bottom: 5px;
+              cursor: grab;
+              border: 1px solid #eee;
+            "
+          >
+            视频模块
+          </div>
+          <div
+            style="
+              padding: 10px;
+              background: #f1f5f9;
+              margin-bottom: 5px;
+              cursor: grab;
+              border: 1px solid #eee;
+            "
+          >
+            H5 互动
+          </div>
+        </div>
+        <div class="flow-tracks">
+          <div style="margin-bottom: 10px; font-weight: bold; color: #666">
+            时间轴 (45 min)
+          </div>
+          <div class="track">
+            <div class="track-item" style="left: 20px; width: 100px">
+              导入 (5m)
+            </div>
+            <div
+              class="track-item"
+              style="left: 130px; width: 200px; background: #059669"
+            >
+              新授 (15m)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor-full" id="editor-ppt">
+      <div class="editor-header">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button
+            onclick="closeEditor('ppt')"
+            style="border: none; background: none; cursor: pointer"
+          >
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <strong>课件导入增强</strong>
+        </div>
+        <button
+          style="
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+          "
+        >
+          导出
+        </button>
+      </div>
+      <div class="editor-body">
+        <div
+          style="
+            width: 200px;
+            background: white;
+            border-right: 1px solid #ddd;
+            padding: 1rem;
+          "
+        >
+          <h4>互动图层</h4>
+          <div
+            style="
+              padding: 10px;
+              background: #f1f5f9;
+              margin-bottom: 5px;
+              cursor: grab;
+              border: 1px solid #eee;
+            "
+          >
+            投票器
+          </div>
+          <div
+            style="
+              padding: 10px;
+              background: #f1f5f9;
+              margin-bottom: 5px;
+              cursor: grab;
+              border: 1px solid #eee;
+            "
+          >
+            计时器
+          </div>
+        </div>
+        <div class="ppt-canvas">
+          <div class="slide-preview">
+            <div
+              style="
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                font-size: 1.5rem;
+                font-weight: bold;
+              "
+            >
+              PPT 第 3 页
+            </div>
+            <div class="interactive-layer">互动投票区域</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- 54个真实数据生成 ---
+      const subjects = [
+        {
+          name: "语文",
+          color: "var(--c-chi)",
+          items: [
+            "飞花令PK",
+            "鲁迅朋友圈",
+            "古诗词填空",
+            "成语消消乐",
+            "作文情感分析",
+            "汉字演变",
+          ],
+        },
+        {
+          name: "数学",
+          color: "var(--c-mat)",
+          items: [
+            "勾股定理演示",
+            "函数图像生成",
+            "立体几何剖切",
+            "概率投针",
+            "三角函数圆",
+            "分式运算",
+          ],
+        },
+        {
+          name: "英语",
+          color: "var(--c-eng)",
+          items: [
+            "单词记忆卡",
+            "情景对话",
+            "时态轴",
+            "AI发音评分",
+            "连词成句",
+            "写作润色",
+          ],
+        },
+        {
+          name: "物理",
+          color: "var(--c-phy)",
+          items: [
+            "平抛运动",
+            "电路仿真",
+            "受力分析",
+            "波形示波器",
+            "凸透镜成像",
+            "滑轮组",
+          ],
+        },
+        {
+          name: "化学",
+          color: "var(--c-che)",
+          items: [
+            "元素周期表",
+            "分子结构",
+            "酸碱滴定",
+            "配平挑战",
+            "反应速率",
+            "安全找茬",
+          ],
+        },
+        {
+          name: "生物",
+          color: "var(--c-bio)",
+          items: [
+            "细胞结构",
+            "遗传杂交",
+            "食物网",
+            "光合作用",
+            "骨骼拼图",
+            "病毒免疫",
+          ],
+        },
+        {
+          name: "历史",
+          color: "var(--c-his)",
+          items: [
+            "朝代轴",
+            "丝绸之路",
+            "兵马俑VR",
+            "事件排序",
+            "文物修复",
+            "二战推演",
+          ],
+        },
+        {
+          name: "地理",
+          color: "var(--c-geo)",
+          items: [
+            "等高线",
+            "洋流演示",
+            "昼夜交替",
+            "板块构造",
+            "行政区划",
+            "气温降水",
+          ],
+        },
+        {
+          name: "政治",
+          color: "var(--c-pol)",
+          items: [
+            "模拟法庭",
+            "个税计算",
+            "垃圾分类",
+            "选举流程",
+            "供求曲线",
+            "哲学导图",
+          ],
+        },
+      ];
+
+      const types = ["交互 H5", "课堂活动", "教学工具", "课件包"];
+      const db = [];
+      subjects.forEach((sub) => {
+        sub.items.forEach((t) =>
+          db.push({
+            subject: sub.name,
+            title: t,
+            color: sub.color,
+            type: types[Math.floor(Math.random() * types.length)],
+            desc: `这是一个关于${sub.name}学科的“${t}”高互动资源，支持课堂演示、学生PK及数据导出。`,
+          }),
+        );
+      });
+
+      // 渲染集市
+      function renderGrid(filter) {
+        const grid = document.getElementById("marketGrid");
+        grid.innerHTML = "";
+        const data =
+          filter === "all" ? db : db.filter((i) => i.subject === filter);
+
+        data.forEach((item, idx) => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.onclick = () => openPreview(item);
+          div.innerHTML = `
+                <div class="card-img">
+                    <img src="https://picsum.photos/seed/${idx * 10}/300/200">
+                    <div class="card-tag" style="background:${item.color}">${item.subject} · ${item.type}</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-title">${item.title}</div>
+                    <div class="card-desc">${item.desc}</div>
+                    <div class="card-footer">
+                        <span>名师工作室</span>
+                        <span><i class="fa-regular fa-heart"></i> ${Math.floor(Math.random() * 900)}</span>
+                    </div>
+                </div>
+            `;
+          grid.appendChild(div);
+        });
+      }
+
+      function filterGrid(sub, el) {
+        document
+          .querySelectorAll(".filter-pill")
+          .forEach((p) => p.classList.remove("active"));
+        el.classList.add("active");
+        renderGrid(sub);
+      }
+
+      // 渲染社区 Feed (12条, 双列)
+      const feedList = document.getElementById("feedList");
+      const posts = [
+        {
+          u: "张老师",
+          c: "分享自制物理H5，学生反馈很好！",
+          res: db[18],
+          comments: ["求教程!", "太棒了"],
+        },
+        {
+          u: "李老师",
+          c: "求助：关于古诗词导入灵感？",
+          res: null,
+          comments: ["试试飞花令"],
+        },
+        {
+          u: "王老师",
+          c: "化学酸碱滴定模拟，安全直观。",
+          res: db[26],
+          comments: [],
+        },
+        {
+          u: "赵老师",
+          c: "推荐这个单词记忆卡，背书神器。",
+          res: db[12],
+          comments: ["收藏了"],
+        },
+        {
+          u: "孙老师",
+          c: "历史朝代轴太好用了，一目了然。",
+          res: db[36],
+          comments: [],
+        },
+        {
+          u: "周老师",
+          c: "地理等高线总是讲不清，用了这个秒懂。",
+          res: db[42],
+          comments: ["同感"],
+        },
+        {
+          u: "吴老师",
+          c: "模拟法庭剧本很详细，赞。",
+          res: db[48],
+          comments: [],
+        },
+        {
+          u: "郑老师",
+          c: "生物细胞结构3D展示太震撼了。",
+          res: db[30],
+          comments: [],
+        },
+        {
+          u: "冯老师",
+          c: "数学勾股定理演示，几何画板平替。",
+          res: db[6],
+          comments: [],
+        },
+        {
+          u: "陈老师",
+          c: "英语情景对话，AI发音很准。",
+          res: db[13],
+          comments: [],
+        },
+        {
+          u: "褚老师",
+          c: "有没有政治经济学的相关资源？",
+          res: null,
+          comments: ["供求曲线那个不错"],
+        },
+        {
+          u: "卫老师",
+          c: "分享：自制复习课件包。",
+          res: db[0],
+          comments: ["感谢分享"],
+        },
+      ];
+
+      posts.forEach((p) => {
+        const div = document.createElement("div");
+        div.className = "feed-card";
+        let resHtml = "";
+        if (p.res) {
+          resHtml = `
+            <div class="feed-resource" onclick="openPreview({title:'${p.res.title}', desc:'${p.res.desc}'})">
+                <div class="feed-res-img" style="background:${p.res.color}"></div>
+                <div class="feed-res-info">
+                    <div style="font-weight:700;">${p.res.title}</div>
+                    <div style="font-size:0.8rem; color:#666;">点击预览</div>
+                </div>
+            </div>`;
+        }
+        let cmtHtml = "";
+        if (p.comments.length) {
+          cmtHtml = '<div class="comment-section">';
+          p.comments.forEach((c) => {
+            cmtHtml += `<div class="comment-item"><div class="comment-avatar"></div><div class="comment-content"><span>某老师:</span><p>${c}</p></div></div>`;
+          });
+          cmtHtml += "</div>";
+        }
+
+        div.innerHTML = `
+            <div class="feed-header">
+                <div class="avatar"></div>
+                <div><div style="font-weight:700;">${p.u}</div><div style="font-size:0.8rem; color:#999;">1小时前</div></div>
+            </div>
+            <div class="feed-content">${p.c}</div>
+            ${resHtml}
+            <div class="feed-actions">
+                <div class="action-btn"><i class="fa-regular fa-thumbs-up"></i> 赞</div>
+                <div class="action-btn"><i class="fa-regular fa-comment"></i> 评论</div>
+            </div>
+            ${cmtHtml}
+        `;
+        feedList.appendChild(div);
+      });
+
+      // 逻辑
+      function switchView(id) {
+        document
+          .querySelectorAll(".page-view")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById("view-" + id).classList.add("active");
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        if (document.getElementById("nav-" + id))
+          document.getElementById("nav-" + id).classList.add("active");
+      }
+
+      function openPreview(item) {
+        document.getElementById("modalTitle").innerText =
+          item.title || "资源标题";
+        document.getElementById("modalDesc").innerText = item.desc || "描述";
+        document.getElementById("previewModal").style.display = "flex";
+      }
+
+      function openEditor(type) {
+        document.getElementById("editor-" + type).style.display = "flex";
+      }
+      function closeEditor(type) {
+        document.getElementById("editor-" + type).style.display = "none";
+      }
+
+      function switchH5Tab(el, id) {
+        document
+          .querySelectorAll(".h5-tab")
+          .forEach((t) => t.classList.remove("active"));
+        el.classList.add("active");
+        document
+          .querySelectorAll(".h5-panel-content")
+          .forEach((c) => (c.style.display = "none"));
+        document.getElementById(id).style.display = "block";
+      }
+
+      function runAI() {
+        const box = document.getElementById("aiChatBox");
+        const cmd = document.getElementById("aiCmd").value;
+        if (!cmd) return;
+        box.innerHTML += `<div class="chat-row chat-user"><div class="chat-bubble">${cmd}</div></div>`;
+        setTimeout(() => {
+          box.innerHTML += `<div class="chat-row chat-ai"><div class="chat-bubble">已生成互动组件！</div></div>`;
+          document.getElementById("canvasContent").innerHTML = `
+                <div class="interactive-demo">
+                    <h3 style="margin-bottom:15px; text-align:center;">${cmd}</h3>
+                    <h4 style="margin-bottom:15px;">Q: 关于该知识点，下列说法正确的是？</h4>
+                    <div class="demo-btn" onclick="check(this, false)">A. 这是一个干扰项</div>
+                    <div class="demo-btn" onclick="check(this, true)">B. 这是正确答案 (点击测试)</div>
+                    <div class="demo-btn" onclick="check(this, false)">C. 这也是干扰项</div>
+                </div>
+            `;
+        }, 500);
+        document.getElementById("aiCmd").value = "";
+      }
+
+      window.check = function (el, isCorrect) {
+        const all = el.parentElement.querySelectorAll(".demo-btn");
+        all.forEach((b) => (b.className = "demo-btn"));
+        if (isCorrect) el.classList.add("correct");
+        else el.classList.add("wrong");
+      };
+
+      // Init
+      renderGrid("all");
+    </script>
+  </body>
+</html>

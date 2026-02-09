@@ -1,0 +1,35 @@
+{
+  "textAppreciation": {
+    "contentTheme": {
+      "textTitle": "文本标题",
+      "mainContent": "主要内容",
+      "plotEvents": "情节与事件",
+      "sentenceUnderstanding": "词句理解",
+      "authorEmotion": "作者情感",
+      "themeIdea": "主题思想"
+    },
+    "characterPortrayal": {
+      "characterImage": "人物形象",
+      "characterEmotion": "人物情感"
+    },
+    "structureLayout": {
+      "textStructure": "文本结构",
+      "textClue": "文本线索",
+      "sentenceParagraph": {
+        "ending": "结尾（第7段）——重点赏析"
+      }
+    },
+    "languageTechniques": {
+      "expressionMethod": {
+        "description": "描写"
+      },
+      "expressionTechnique": "表现手法",
+      "languageStyle": "语言风格",
+      "rhetoric": "修辞手法",
+      "wordAnalysis": "词语品析"
+    }
+  },
+  "learningMethods": {
+    "readingMethods": "阅读方法"
+  }
+}

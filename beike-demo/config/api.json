@@ -1,0 +1,5 @@
+{
+  "api_key": "sk-fLQsPOWxctgZwHRIXhddAX5Km2tbhPKfpOiB1VV5ApTRdnSC",
+  "api_url": "https://api.aimindsky.com/v1/messages",
+  "model": "claude-3-5-sonnet-20241022"
+}
