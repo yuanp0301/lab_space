@@ -25,7 +25,7 @@ class ImageChatExperiment(BaseExperiment):
         tags=["图片", "多模态", "视觉"],
         supports_streaming=True,
         supports_multimodal=True,
-        default_provider="anthropic",
+        default_provider="aimindsky",
         parameters=[
             {
                 "name": "temperature",

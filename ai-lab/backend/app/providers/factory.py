@@ -31,41 +31,21 @@ class ProviderFactory:
 
     @classmethod
     def create(cls, provider_type: ProviderType) -> BaseProvider:
-        """Create a new provider instance."""
-        if provider_type not in cls._providers:
-            raise ValueError(f"Unknown provider type: {provider_type}")
-
+        """Create a new provider instance.
+        
+        注意：所有 provider 类型统一使用 AIMindSky 服务。
+        """
         settings = get_settings()
 
-        if provider_type == "anthropic":
-            config = ProviderConfig(
-                name="anthropic",
-                api_key=settings.anthropic_api_key,
-                default_model=settings.default_anthropic_model,
-            )
-        elif provider_type == "openai":
-            config = ProviderConfig(
-                name="openai",
-                api_key=settings.openai_api_key,
-                default_model=settings.default_openai_model,
-            )
-        elif provider_type == "ollama":
-            config = ProviderConfig(
-                name="ollama",
-                base_url=settings.ollama_base_url,
-                default_model=settings.default_ollama_model,
-            )
-        elif provider_type == "aimindsky":
-            config = ProviderConfig(
-                name="aimindsky",
-                api_key=settings.aimindsky_api_key,
-                base_url=settings.aimindsky_base_url,
-                default_model=settings.default_aimindsky_model,
-            )
-        else:
-            raise ValueError(f"Unknown provider type: {provider_type}")
+        # 统一使用 AIMindSky provider
+        config = ProviderConfig(
+            name="aimindsky",
+            api_key=settings.aimindsky_api_key,
+            base_url=settings.aimindsky_base_url,
+            default_model=settings.default_aimindsky_model,
+        )
 
-        return cls._providers[provider_type](config)
+        return AIMindSkyProvider(config)
 
     @classmethod
     def get(cls, provider_type: ProviderType | None = None) -> BaseProvider:
@@ -81,41 +61,27 @@ class ProviderFactory:
 
     @classmethod
     def get_available_providers(cls) -> list[dict]:
-        """Get list of available providers with their models."""
+        """Get list of available providers with their models.
+        
+        注意：统一返回 AIMindSky provider，所有模型请求都通过 AIMindSky 代理。
+        """
         settings = get_settings()
         providers = []
 
-        # Anthropic
-        if settings.anthropic_api_key:
-            providers.append({
-                "name": "anthropic",
-                "label": "Anthropic (Claude)",
-                "models": AnthropicProvider.MODELS,
-                "default_model": settings.default_anthropic_model,
-            })
-
-        # OpenAI
-        if settings.openai_api_key:
-            providers.append({
-                "name": "openai",
-                "label": "OpenAI (GPT)",
-                "models": OpenAIProvider.MODELS,
-                "default_model": settings.default_openai_model,
-            })
-
-        # Ollama (always available if configured)
+        # 统一使用 AIMindSky
         providers.append({
-            "name": "ollama",
-            "label": "Ollama (Local)",
-            "models": OllamaProvider.DEFAULT_MODELS,
-            "default_model": settings.default_ollama_model,
+            "name": "aimindsky",
+            "label": "AIMindSky (代理)",
+            "models": AIMindSkyProvider.MODELS,
+            "default_model": settings.default_aimindsky_model,
         })
 
-        # AIMindSky
-        if settings.aimindsky_api_key:
+        # 为了兼容性，也返回其他 provider 名称（但实际都使用 AIMindSky）
+        # 这样前端可以选择不同的 provider 名称，但后端统一使用 AIMindSky
+        for provider_name in ["anthropic", "openai", "ollama"]:
             providers.append({
-                "name": "aimindsky",
-                "label": "AIMindSky (代理)",
+                "name": provider_name,
+                "label": f"{provider_name} (通过 AIMindSky 代理)",
                 "models": AIMindSkyProvider.MODELS,
                 "default_model": settings.default_aimindsky_model,
             })

@@ -23,23 +23,23 @@ onMounted(() => {
 const promptCards = [
   {
     icon: "💡",
-    title: "帮我写代码",
-    description: "解释代码、编写函数、调试错误、代码优化",
+    title: "代码助手",
+    description: "编写、解释、优化代码",
   },
   {
     icon: "📝",
     title: "文案创作",
-    description: "撰写文章、邮件、报告、营销文案",
+    description: "撰写文章、邮件、报告",
   },
   {
     icon: "🔍",
-    title: "信息查询",
-    description: "解答问题、知识检索、概念解释",
+    title: "知识问答",
+    description: "解答问题、解释概念",
   },
   {
     icon: "📊",
     title: "数据分析",
-    description: "分析数据、生成图表、提取洞见",
+    description: "分析数据、提取洞见",
   },
 ];
 
@@ -68,67 +68,102 @@ const handleSend = async (content: string | ContentBlock[]) => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col">
+  <div class="flex h-full flex-col bg-gradient-to-b from-white to-[#f8fafc]">
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between border-b border-[var(--border-light)] bg-white/90 backdrop-blur-xl shadow-sm px-8 py-5"
+    >
+      <div class="flex items-center gap-4">
+        <h1
+          class="text-2xl font-bold text-[var(--text-primary)] tracking-tight"
+        >
+          AI助手
+        </h1>
+        <div class="h-6 w-px bg-[var(--border-color)]"></div>
+        <span class="text-sm text-[var(--text-secondary)] font-medium"
+          >智能对话平台</span
+        >
+      </div>
+      <div
+        class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 via-orange-100 to-red-100 text-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      >
+        🎓
+      </div>
+    </div>
+
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto px-8 py-6">
-      <div class="mx-auto max-w-4xl">
+    <div class="flex-1 overflow-y-auto">
+      <div class="mx-auto max-w-5xl px-8 py-12">
         <!-- Welcome Hero -->
         <WelcomeHero />
 
-        <!-- Cards Section -->
-        <div class="mt-8 grid grid-cols-2 gap-6">
-          <!-- Prompt Cards -->
-          <div>
+        <!-- Quick Actions -->
+        <div class="mt-16">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="h-0.5 w-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400"
+            ></div>
             <h3
-              class="mb-4 text-sm font-medium text-[var(--text-secondary)] uppercase tracking-wide"
+              class="text-lg font-bold text-[var(--text-primary)] tracking-tight"
             >
               常用提示词
             </h3>
-            <div class="grid grid-cols-2 gap-3">
-              <PromptCard
-                v-for="card in promptCards"
-                :key="card.title"
-                :icon="card.icon"
-                :title="card.title"
-                :description="card.description"
-                @click="handlePromptClick(card.title)"
-              />
-            </div>
+            <div
+              class="flex-1 h-0.5 rounded-full bg-gradient-to-r from-purple-400 to-transparent"
+            ></div>
           </div>
+          <div class="grid grid-cols-2 gap-5">
+            <PromptCard
+              v-for="card in promptCards.slice(0, 4)"
+              :key="card.title"
+              :icon="card.icon"
+              :title="card.title"
+              :description="card.description"
+              @click="handlePromptClick(card.title)"
+            />
+          </div>
+        </div>
 
-          <!-- Experiment Cards -->
-          <div>
+        <!-- Knowledge Base Section -->
+        <div class="mt-16">
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="h-0.5 w-8 rounded-full bg-gradient-to-r from-pink-400 to-rose-400"
+            ></div>
             <h3
-              class="mb-4 text-sm font-medium text-[var(--text-secondary)] uppercase tracking-wide"
+              class="text-lg font-bold text-[var(--text-primary)] tracking-tight"
             >
-              AI 实验室
+              智能知识库
             </h3>
-            <div class="grid grid-cols-1 gap-3">
-              <PromptCard
-                v-for="exp in experiments.slice(0, 2)"
-                :key="exp.id"
-                :icon="exp.icon || '🧪'"
-                :title="exp.name"
-                :description="exp.description"
-                @click="handleExperimentClick(exp.id)"
-              />
-              <button
-                v-if="experiments.length > 2"
-                class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border-color)] p-4 text-[var(--text-secondary)] transition-colors hover:border-brand-400 hover:text-brand-500"
-                @click="router.push('/experiments')"
-              >
-                <span>查看更多实验</span>
-                <span>→</span>
-              </button>
-            </div>
+            <div
+              class="flex-1 h-0.5 rounded-full bg-gradient-to-r from-rose-400 to-transparent"
+            ></div>
+          </div>
+          <div class="grid grid-cols-2 gap-5">
+            <PromptCard
+              icon="📚"
+              title="调试中-勿用"
+              description="系统调试中，请勿使用"
+              @click="() => {}"
+            />
+            <PromptCard
+              icon="💾"
+              title="sqlboy"
+              description="SQL 知识库"
+              @click="() => {}"
+            />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Bottom Input Area -->
-    <div class="border-t border-[var(--border-color)] bg-white p-4">
-      <HomeInput @send="handleSend" />
+    <div
+      class="border-t border-[var(--border-light)] bg-white/95 backdrop-blur-xl shadow-lg"
+    >
+      <div class="mx-auto max-w-5xl px-8 py-6">
+        <HomeInput @send="handleSend" />
+      </div>
     </div>
   </div>
 </template>

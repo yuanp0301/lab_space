@@ -9,15 +9,14 @@ const { isSecondarySidebarCollapsed } = storeToRefs(sidebarStore);
 </script>
 
 <template>
-  <div class="flex h-screen w-full overflow-hidden">
-    <!-- Icon Sidebar (60px) -->
+  <div
+    class="flex h-screen w-full overflow-hidden bg-gradient-to-b from-white to-[#f8fafc]"
+  >
+    <!-- Main Sidebar (包含一级和二级菜单) -->
     <IconSidebar />
 
-    <!-- Secondary Sidebar (260px) -->
-    <SecondarySidebar v-if="!isSecondarySidebarCollapsed" />
-
     <!-- Main Content Area -->
-    <main class="flex-1 overflow-hidden bg-[var(--bg-color)]">
+    <main class="flex-1 overflow-hidden flex flex-col">
       <router-view />
     </main>
   </div>

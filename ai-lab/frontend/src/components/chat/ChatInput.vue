@@ -1,18 +1,50 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { NInput, NButton, NUpload, useMessage } from "naive-ui";
+import { ref, computed, onMounted } from "vue";
+import { NInput, NButton, NUpload, NSelect, useMessage } from "naive-ui";
 import type { UploadFileInfo } from "naive-ui";
 import { filesApi, type UploadResponse } from "@/api/files";
+import { useChatStore } from "@/stores/chat";
 import type { ContentBlock } from "@/api/chat";
+import type { ProviderInfo } from "@/api/chat";
 
 const emit = defineEmits<{
   send: [content: string | ContentBlock[]];
+  "update:current-model": [value: string];
 }>();
 
-defineProps<{
+const props = defineProps<{
   disabled?: boolean;
   loading?: boolean;
+  providers?: ProviderInfo[];
+  currentModel?: string;
 }>();
+
+const chatStore = useChatStore();
+
+// 默认使用 aimindsky provider
+onMounted(() => {
+  if (!chatStore.currentProvider) {
+    chatStore.setProvider("aimindsky");
+  }
+});
+
+const modelOptions = computed(() => {
+  if (!props.providers || props.providers.length === 0) return [];
+  // 找到 aimindsky provider
+  const aimindskyProvider = props.providers.find((p) => p.name === "aimindsky");
+  return (aimindskyProvider?.models || []).map((m) => ({
+    label: m,
+    value: m,
+  }));
+});
+
+const currentModelValue = computed({
+  get: () => props.currentModel || chatStore.currentModel,
+  set: (value: string) => {
+    emit("update:current-model", value);
+    chatStore.setModel(value);
+  },
+});
 
 const message = useMessage();
 const inputValue = ref("");
@@ -98,78 +130,94 @@ const removeImage = (index: number) => {
 
     <!-- Input Container -->
     <div
-      class="flex items-end gap-3 rounded-2xl border border-[var(--border-color)] bg-white p-3 shadow-sm focus-within:border-brand-400 focus-within:ring-1 focus-within:ring-brand-400"
+      class="group flex flex-col gap-3 rounded-2xl border-2 border-indigo-200 bg-white p-5 shadow-lg focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100/50 focus-within:shadow-xl transition-all duration-200"
     >
-      <!-- Upload Button -->
-      <NUpload
-        :show-file-list="false"
-        accept="image/*"
-        :custom-request="({ file }) => handleUpload({ file })"
-        :disabled="disabled || isUploading"
-      >
-        <button
-          class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          :class="{ 'opacity-50': disabled || isUploading }"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-        </button>
-      </NUpload>
-
-      <!-- Input Field -->
-      <div class="flex-1">
-        <NInput
-          v-model:value="inputValue"
-          type="textarea"
-          placeholder="发送消息... (Shift+Enter 换行)"
-          :autosize="{ minRows: 1, maxRows: 6 }"
-          :disabled="disabled"
-          :bordered="false"
-          class="!bg-transparent"
-          @keydown="handleKeydown"
+      <!-- Model Selector -->
+      <div class="flex items-center gap-2">
+        <NSelect
+          v-if="modelOptions.length > 0"
+          v-model:value="currentModelValue"
+          :options="modelOptions"
+          placeholder="选择模型"
+          size="small"
+          style="width: 200px"
         />
       </div>
 
-      <!-- Send Button -->
-      <NButton
-        type="primary"
-        :loading="loading"
-        :disabled="
-          disabled || (!inputValue.trim() && attachedImages.length === 0)
-        "
-        class="!rounded-lg"
-        @click="handleSend"
-      >
-        <template #icon>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+      <!-- Input Row -->
+      <div class="flex items-end gap-3">
+        <!-- Upload Button -->
+        <NUpload
+          :show-file-list="false"
+          accept="image/*"
+          :custom-request="({ file }) => handleUpload({ file })"
+          :disabled="disabled || isUploading"
+        >
+          <button
+            class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            :class="{ 'opacity-50': disabled || isUploading }"
           >
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        </template>
-      </NButton>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </button>
+        </NUpload>
+
+        <!-- Input Field -->
+        <div class="flex-1">
+          <NInput
+            v-model:value="inputValue"
+            type="textarea"
+            placeholder="发送消息... (Shift+Enter 换行)"
+            :autosize="{ minRows: 2, maxRows: 8 }"
+            :disabled="disabled"
+            :bordered="false"
+            class="!bg-transparent"
+            @keydown="handleKeydown"
+          />
+        </div>
+
+        <!-- Send Button -->
+        <NButton
+          type="primary"
+          :loading="loading"
+          :disabled="
+            disabled || (!inputValue.trim() && attachedImages.length === 0)
+          "
+          class="!rounded-xl !h-11 !px-6 !bg-gradient-to-r !from-indigo-500 !to-purple-500 hover:!from-indigo-600 hover:!to-purple-600 !shadow-lg hover:!shadow-xl !border-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleSend"
+        >
+          <template #icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </template>
+          <span class="ml-2 font-semibold">发送</span>
+        </NButton>
+      </div>
     </div>
   </div>
 </template>

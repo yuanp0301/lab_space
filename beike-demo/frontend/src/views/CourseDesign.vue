@@ -157,7 +157,7 @@ import {
   Loading,
 } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useCourseStore, type Section } from "@/stores/course";
 import { useUserStore } from "@/stores/user";
 import TableView from "@/components/course/TableView.vue";
@@ -165,8 +165,10 @@ import CardView from "@/components/course/CardView.vue";
 import TimelineView from "@/components/course/TimelineView.vue";
 import SectionEditor from "@/components/course/SectionEditor.vue";
 import { evaluateCourseDesign } from "@/utils/aiService";
+import { courseDesignApi } from "@/api/course-design.api";
 
 const router = useRouter();
+const route = useRoute();
 const courseStore = useCourseStore();
 const userStore = useUserStore();
 
@@ -185,10 +187,121 @@ const lesson2Sections = computed(
   () => courseStore.courseData?.courseDesign.lesson2.sections || [],
 );
 
+/**
+ * 将后端API返回的CourseDesign转换为前端store的CourseData格式
+ */
+const convertApiDataToStoreFormat = (apiData: any): void => {
+  if (!apiData || !apiData.sessions) {
+    ElMessage.warning("生成的课程设计数据格式不完整");
+    return;
+  }
+
+  const sessions = apiData.sessions;
+
+  // 提取第一课时和第二课时的数据（第二课时可能不存在）
+  const lesson1Data = sessions[0] || { sessionTitle: "第一课时", phases: [] };
+  const lesson2Data = sessions[1] || null;
+
+  // 转换环节数据格式
+  const convertPhases = (phases: any[]): Section[] => {
+    return phases.map((phase, index) => ({
+      id: `${Date.now()}-${index}`,
+      title: phase.phase || `环节${index + 1}`,
+      mainQuestion: phase.questions || phase.mainQuestion || "",
+      subQuestions: phase.subQuestions || [],
+      activities: phase.activities || "",
+      knowledgePoints: phase.knowledge
+        ? [phase.knowledge]
+        : (phase.knowledgePoints || []).map(
+            (kp: any) => kp.description || kp.tag,
+          ),
+      expectedOutcome: "",
+      verification: "",
+      duration: 10,
+    }));
+  };
+
+  // 更新store数据
+  const courseDesign: any = {
+    lesson1: {
+      title: lesson1Data.sessionTitle,
+      sections: convertPhases(lesson1Data.phases),
+    },
+  };
+
+  // 只有当存在第二课时时才添加
+  if (lesson2Data && lesson2Data.phases && lesson2Data.phases.length > 0) {
+    courseDesign.lesson2 = {
+      title: lesson2Data.sessionTitle,
+      sections: convertPhases(lesson2Data.phases),
+    };
+  }
+
+  courseStore.courseData = {
+    username: "",
+    lessonTitle: apiData.lessonTitle || "《秋天的怀念》",
+    updateTime: new Date().toISOString(),
+    courseDesign,
+  };
+};
+
 onMounted(async () => {
+  // 检查路由参数，判断来源类型
+  const queryType = route.query.type as string;
+
+  // 处理AI生成请求
+  if (queryType === "ai") {
+    const prompt = route.query.prompt as string;
+    if (!prompt) {
+      ElMessage.error("缺少生成提示");
+      return;
+    }
+
+    courseStore.isLoading = true;
+    try {
+      ElMessage.info("正在生成课程设计，请稍候...");
+
+      // 调用AI生成API
+      const result = await courseDesignApi.generateFromRequirements({
+        lessonTitle: "《秋天的怀念》",
+        requirements: prompt,
+        referenceTemplate: "table",
+      });
+
+      // 将生成的结果转换为 store 的数据格式并保存
+      convertApiDataToStoreFormat(result);
+
+      ElMessage.success("课程设计生成成功！");
+      console.log("AI生成结果:", result);
+    } catch (error) {
+      console.error("AI生成失败:", error);
+      ElMessage.error(
+        error instanceof Error ? error.message : "AI生成失败，请稍后重试",
+      );
+      // 生成失败，加载默认示例数据
+      await courseStore.loadCourseDesign();
+      loadSampleData();
+    } finally {
+      courseStore.isLoading = false;
+    }
+    return;
+  }
+
+  // 检查是否从文档生成跳转过来
+  const isFromDocument = queryType === "document";
+
+  // 如果是从文档生成跳转过来的，且store中已有数据，则不重新加载
+  if (isFromDocument && courseStore.courseData) {
+    // 使用已有的数据，不加载示例数据
+    return;
+  }
+
+  // 否则正常加载
   await courseStore.loadCourseDesign();
-  // 加载示例数据
-  loadSampleData();
+  // 加载示例数据（仅在没有数据时）
+  if (!courseStore.courseData?.courseDesign.lesson1.sections.length) {
+    loadSampleData();
+  }
 });
 
 const loadSampleData = () => {
@@ -392,10 +505,31 @@ const handleNewCourseDesign = async () => {
       },
     );
 
-    // 重置课程设计数据
-    await courseStore.loadCourseDesign();
+    // 创建只有第一课时的新课程设计（不包含第二课时）
+    courseStore.courseData = {
+      username: "",
+      lessonTitle: "《秋天的怀念》",
+      updateTime: new Date().toISOString(),
+      courseDesign: {
+        lesson1: {
+          title: "第一课时",
+          sections: [],
+        },
+        lesson2: {
+          title: "第二课时",
+          sections: [],
+        },
+      },
+    };
+
     activeLesson.value = "lesson1";
-    ElMessage.success("已创建新的课程设计");
+
+    // 打开添加环节弹窗
+    currentSection.value = undefined;
+    isNewSection.value = true;
+    showEditor.value = true;
+
+    ElMessage.success("已创建新的课程设计，请添加教学环节");
   } catch (error) {
     // 用户取消操作
     if (error !== "cancel") {

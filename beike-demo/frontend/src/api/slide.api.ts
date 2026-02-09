@@ -65,6 +65,27 @@ export interface ApiResponse<T> {
 }
 
 /**
+ * 课件生成请求参数
+ */
+export interface GenerateSlideRequest {
+  lessonTitle: string;
+  textContent?: string;
+  requirements?: string;
+  documentType?: string;
+}
+
+/**
+ * 流式响应数据块
+ */
+export interface StreamChunk {
+  type: "chunk" | "complete" | "error" | "done";
+  content?: string;
+  progress?: number;
+  data?: CourseSlideDesign;
+  message?: string;
+}
+
+/**
  * 幻灯片API服务
  */
 export const slideApi = {
@@ -143,4 +164,393 @@ export const slideApi = {
       throw new Error(response.message || "清除缓存失败");
     }
   },
+
+  /**
+   * 基于课程设计生成课件（流式响应）
+   */
+  async generateFromCourseDesignStream(
+    courseDesign: any,
+    onChunk: (chunk: StreamChunk) => void,
+    onError?: (error: Error) => void,
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // 使用fetch进行流式请求
+        const response = await fetch(
+          `${API_BASE_URL}/api/slides/generate/from-course-design-stream`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ courseDesign }),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // 读取流式响应
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error("无法读取响应流");
+        }
+
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          // 解码数据
+          buffer += decoder.decode(value, { stream: true });
+
+          // 处理可能包含多个JSON对象的缓冲区
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 保留最后一个不完整的行
+
+          for (const line of lines) {
+            if (line.trim()) {
+              try {
+                // 处理SSE格式的数据
+                if (line.startsWith("data: ")) {
+                  const jsonStr = line.substring(6);
+                  if (jsonStr === "[DONE]") {
+                    onChunk({ type: "complete" });
+                    resolve();
+                    return;
+                  }
+                  const chunk: StreamChunk = JSON.parse(jsonStr);
+                  onChunk(chunk);
+
+                  // 如果收到完成或错误标记，结束
+                  if (chunk.type === "done" || chunk.type === "complete") {
+                    resolve();
+                    return;
+                  }
+                  if (chunk.type === "error") {
+                    throw new Error(chunk.message || "生成课件失败");
+                  }
+                } else {
+                  // 直接JSON格式
+                  const chunk: StreamChunk = JSON.parse(line);
+                  onChunk(chunk);
+                }
+              } catch (e) {
+                console.warn("解析流数据失败:", e, line);
+              }
+            }
+          }
+        }
+
+        // 处理剩余的缓冲区
+        if (buffer.trim()) {
+          try {
+            if (buffer.startsWith("data: ")) {
+              const jsonStr = buffer.substring(6);
+              const chunk: StreamChunk = JSON.parse(jsonStr);
+              onChunk(chunk);
+            } else {
+              const chunk: StreamChunk = JSON.parse(buffer);
+              onChunk(chunk);
+            }
+          } catch (e) {
+            console.warn("解析最后的数据块失败:", e);
+          }
+        }
+
+        onChunk({ type: "complete" });
+        resolve();
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error("生成课件失败");
+        if (onError) {
+          onError(err);
+        }
+        reject(err);
+      }
+    });
+  },
+
+  /**
+   * 基于需求生成课件（流式响应）
+   */
+  async generateFromRequirementsStream(
+    request: GenerateSlideRequest,
+    onChunk: (chunk: StreamChunk) => void,
+    onError?: (error: Error) => void,
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // 使用fetch进行流式请求
+        const response = await fetch(
+          `${API_BASE_URL}/api/slides/generate/from-requirements-stream`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(request),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // 读取流式响应
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error("无法读取响应流");
+        }
+
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          // 解码数据
+          buffer += decoder.decode(value, { stream: true });
+
+          // 处理可能包含多个JSON对象的缓冲区
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 保留最后一个不完整的行
+
+          for (const line of lines) {
+            if (line.trim()) {
+              try {
+                // 处理SSE格式的数据
+                if (line.startsWith("data: ")) {
+                  const jsonStr = line.substring(6);
+                  if (jsonStr === "[DONE]") {
+                    onChunk({ type: "complete" });
+                    resolve();
+                    return;
+                  }
+                  const chunk: StreamChunk = JSON.parse(jsonStr);
+                  onChunk(chunk);
+
+                  // 如果收到完成或错误标记，结束
+                  if (chunk.type === "done" || chunk.type === "complete") {
+                    resolve();
+                    return;
+                  }
+                  if (chunk.type === "error") {
+                    throw new Error(chunk.message || "生成课件失败");
+                  }
+                } else {
+                  // 直接JSON格式
+                  const chunk: StreamChunk = JSON.parse(line);
+                  onChunk(chunk);
+                }
+              } catch (e) {
+                console.warn("解析流数据失败:", e, line);
+              }
+            }
+          }
+        }
+
+        // 处理剩余的缓冲区
+        if (buffer.trim()) {
+          try {
+            if (buffer.startsWith("data: ")) {
+              const jsonStr = buffer.substring(6);
+              const chunk: StreamChunk = JSON.parse(jsonStr);
+              onChunk(chunk);
+            } else {
+              const chunk: StreamChunk = JSON.parse(buffer);
+              onChunk(chunk);
+            }
+          } catch (e) {
+            console.warn("解析最后的数据块失败:", e);
+          }
+        }
+
+        onChunk({ type: "complete" });
+        resolve();
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error("生成课件失败");
+        if (onError) {
+          onError(err);
+        }
+        reject(err);
+      }
+    });
+  },
+
+  /**
+   * 基于文档生成课件（流式响应）
+   */
+  async generateFromDocumentStream(
+    file: File,
+    lessonTitle: string | undefined,
+    onChunk: (chunk: StreamChunk) => void,
+    onError?: (error: Error) => void,
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const documentType = getFileType(file.name);
+
+        // 创建FormData
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("documentType", documentType);
+        if (lessonTitle) {
+          formData.append("lessonTitle", lessonTitle);
+        }
+
+        // 对于文本文件，也传递内容
+        try {
+          const fileContent = await readFileContent(file);
+          formData.append("documentContent", fileContent);
+        } catch (e) {
+          console.warn("无法读取文件内容，将仅传递文件:", e);
+        }
+
+        // 使用fetch进行流式请求
+        const response = await fetch(
+          `${API_BASE_URL}/api/slides/generate/from-document-stream`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // 读取流式响应
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error("无法读取响应流");
+        }
+
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          // 解码数据
+          buffer += decoder.decode(value, { stream: true });
+
+          // 处理可能包含多个JSON对象的缓冲区
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 保留最后一个不完整的行
+
+          for (const line of lines) {
+            if (line.trim()) {
+              try {
+                // 处理SSE格式的数据
+                if (line.startsWith("data: ")) {
+                  const jsonStr = line.substring(6);
+                  if (jsonStr === "[DONE]") {
+                    onChunk({ type: "complete" });
+                    resolve();
+                    return;
+                  }
+                  const chunk: StreamChunk = JSON.parse(jsonStr);
+                  onChunk(chunk);
+
+                  // 如果收到完成或错误标记，结束
+                  if (chunk.type === "done" || chunk.type === "complete") {
+                    resolve();
+                    return;
+                  }
+                  if (chunk.type === "error") {
+                    throw new Error(chunk.message || "生成课件失败");
+                  }
+                } else {
+                  // 直接JSON格式
+                  const chunk: StreamChunk = JSON.parse(line);
+                  onChunk(chunk);
+                }
+              } catch (e) {
+                console.warn("解析流数据失败:", e, line);
+              }
+            }
+          }
+        }
+
+        // 处理剩余的缓冲区
+        if (buffer.trim()) {
+          try {
+            if (buffer.startsWith("data: ")) {
+              const jsonStr = buffer.substring(6);
+              const chunk: StreamChunk = JSON.parse(jsonStr);
+              onChunk(chunk);
+            } else {
+              const chunk: StreamChunk = JSON.parse(buffer);
+              onChunk(chunk);
+            }
+          } catch (e) {
+            console.warn("解析最后的数据块失败:", e);
+          }
+        }
+
+        onChunk({ type: "complete" });
+        resolve();
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error("生成课件失败");
+        if (onError) {
+          onError(err);
+        }
+        reject(err);
+      }
+    });
+  },
 };
+
+/**
+ * 辅助函数：读取文件内容
+ */
+async function readFileContent(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result;
+      if (typeof content === "string") {
+        resolve(content);
+      } else {
+        reject(new Error("无法读取文件内容"));
+      }
+    };
+    reader.onerror = () => reject(new Error("文件读取失败"));
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * 辅助函数：根据文件名获取文件类型
+ */
+function getFileType(fileName: string): string {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  const typeMap: Record<string, string> = {
+    doc: "docx",
+    docx: "docx",
+    md: "markdown",
+    markdown: "markdown",
+    html: "html",
+    htm: "html",
+    txt: "txt",
+    pdf: "pdf",
+  };
+  return typeMap[ext || ""] || "txt";
+}

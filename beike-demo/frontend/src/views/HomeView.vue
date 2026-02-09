@@ -637,14 +637,45 @@
         </div>
       </div>
     </div>
+
+    <!-- 生成课程设计加载动画 -->
+    <div v-if="isGenerating" class="generation-overlay">
+      <div class="generation-dialog">
+        <div class="generation-header">
+          <h3 class="generation-title">正在生成课程设计</h3>
+        </div>
+        <div class="generation-content">
+          <div class="loading-animation">
+            <div class="spinner">
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+            </div>
+          </div>
+          <div class="generation-status">{{ generationStatus }}</div>
+          <div class="generation-progress">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: generationProgress + '%' }"
+              ></div>
+            </div>
+            <div class="progress-text">{{ generationProgress }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { courseDesignApi } from "@/api/course-design.api";
+import { useCourseStore } from "@/stores/course";
 
 const router = useRouter();
+const courseStore = useCourseStore();
 
 // 模版选择对话框状态
 const showTemplateDialog = ref(false);
@@ -656,6 +687,9 @@ const selectedFile = ref<File | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const isDragOver = ref(false);
 const documentURL = ref("");
+const isGenerating = ref(false);
+const generationProgress = ref(0);
+const generationStatus = ref("");
 
 // 文本输入对话框状态
 const showTextInputDialog = ref(false);
@@ -717,8 +751,8 @@ const courseTemplates = ref([
 
 // 课程设计参考资源
 const courseDesignResources = ref([
-  { name: "情景任务式课程设计", desc: "以任务驱动，情境化教学" },
-  { name: "大单元教学课程设计", desc: "整体设计，系统化教学" },
+  { name: "《秋天的怀念》情境任务式课程设计（完整版）", desc: "以任务驱动，情境化教学" },
+  { name: "《秋天的怀念》情境任务式课程设计（表格版）", desc: "整体设计，系统化教学" },
   { name: "探究式课程设计", desc: "引导探究，自主发现" },
   { name: "项目式课程设计", desc: "项目驱动，实践应用" },
 ]);
@@ -847,23 +881,75 @@ const formatFileSize = (bytes: number): string => {
 };
 
 // 上传文档
-const handleUploadDocument = () => {
+const handleUploadDocument = async () => {
   if (documentUploadTab.value === "upload") {
     if (!selectedFile.value) return;
 
-    // 这里可以添加上传逻辑，比如调用API上传文件
-    // 目前直接跳转到课程设计页面
+    // 开始生成，显示加载动画
+    isGenerating.value = true;
+    generationProgress.value = 0;
+    generationStatus.value = "正在读取文档内容...";
     showDocumentUploadDialog.value = false;
-    router.push({
-      path: "/course-design",
-      query: {
-        type: "document",
-        fileName: selectedFile.value.name,
-        fileType:
-          selectedFile.value.type ||
-          getFileTypeFromName(selectedFile.value.name),
-      },
-    });
+
+    try {
+      let accumulatedData: Partial<any> = {};
+
+      // 调用流式生成API
+      await courseDesignApi.generateFromDocumentStream(
+        selectedFile.value,
+        (chunk) => {
+          if (chunk.type === "chunk") {
+            // 更新进度和状态
+            if (chunk.progress !== undefined) {
+              generationProgress.value = chunk.progress;
+            }
+            if (chunk.content) {
+              generationStatus.value = chunk.content;
+            }
+            // 合并数据
+            if (chunk.data) {
+              accumulatedData = { ...accumulatedData, ...chunk.data };
+              // 实时更新到store
+              updateCourseDesignFromStream(accumulatedData);
+            }
+          } else if (chunk.type === "complete") {
+            generationProgress.value = 100;
+            generationStatus.value = "生成完成！";
+            // 跳转到课程设计页面
+            setTimeout(() => {
+              router.push({
+                path: "/course-design",
+                query: {
+                  type: "document",
+                  fileName: selectedFile.value?.name,
+                },
+              });
+              isGenerating.value = false;
+              generationProgress.value = 0;
+              generationStatus.value = "";
+            }, 500);
+          } else if (chunk.type === "error") {
+            throw new Error(chunk.message || "生成失败");
+          }
+        },
+        (error) => {
+          console.error("生成课程设计失败:", error);
+          isGenerating.value = false;
+          generationProgress.value = 0;
+          generationStatus.value = "";
+          alert("生成课程设计失败：" + error.message);
+        },
+      );
+    } catch (error) {
+      console.error("生成课程设计失败:", error);
+      isGenerating.value = false;
+      generationProgress.value = 0;
+      generationStatus.value = "";
+      alert(
+        "生成课程设计失败：" +
+          (error instanceof Error ? error.message : "未知错误"),
+      );
+    }
 
     // 清空选择
     selectedFile.value = null;
@@ -884,6 +970,88 @@ const handleUploadDocument = () => {
         source: "url",
         url: url,
       },
+    });
+  }
+};
+
+// 从流式数据更新课程设计
+const updateCourseDesignFromStream = (data: Partial<any>) => {
+  if (!courseStore.courseData) {
+    // 初始化课程设计数据
+    courseStore.courseData = {
+      username: "",
+      lessonTitle: data.lessonTitle || "秋天的怀念",
+      updateTime: new Date().toISOString(),
+      courseDesign: {
+        lesson1: {
+          title: data.sessions?.[0]?.sessionTitle || "第一课时",
+          sections: [],
+        },
+        lesson2: {
+          title: data.sessions?.[1]?.sessionTitle || "第二课时",
+          sections: [],
+        },
+      },
+    };
+  }
+
+  // 更新课程标题
+  if (data.lessonTitle) {
+    courseStore.courseData.lessonTitle = data.lessonTitle;
+  }
+
+  // 更新课时数据
+  if (data.sessions && Array.isArray(data.sessions)) {
+    data.sessions.forEach((session: any, index: number) => {
+      if (index === 0 && courseStore.courseData) {
+        courseStore.courseData.courseDesign.lesson1.title =
+          session.sessionTitle || "第一课时";
+        // 转换phases为sections
+        if (session.phases && Array.isArray(session.phases)) {
+          courseStore.courseData.courseDesign.lesson1.sections =
+            session.phases.map((phase: any, phaseIndex: number) => ({
+              id: `1-${phaseIndex + 1}`,
+              title: phase.phase || "",
+              mainQuestion: phase.mainQuestion || phase.questions || "",
+              subQuestions: phase.subQuestions || [],
+              activities:
+                typeof phase.activities === "string"
+                  ? phase.activities
+                  : phase.activities?.name || "",
+              knowledgePoints:
+                phase.knowledgePoints?.map(
+                  (kp: any) => kp.description || kp.tag || "",
+                ) || [phase.knowledge || ""].filter(Boolean),
+              expectedOutcome: "",
+              verification: "",
+              duration: 10,
+            }));
+        }
+      } else if (index === 1 && courseStore.courseData) {
+        courseStore.courseData.courseDesign.lesson2.title =
+          session.sessionTitle || "第二课时";
+        // 转换phases为sections
+        if (session.phases && Array.isArray(session.phases)) {
+          courseStore.courseData.courseDesign.lesson2.sections =
+            session.phases.map((phase: any, phaseIndex: number) => ({
+              id: `2-${phaseIndex + 1}`,
+              title: phase.phase || "",
+              mainQuestion: phase.mainQuestion || phase.questions || "",
+              subQuestions: phase.subQuestions || [],
+              activities:
+                typeof phase.activities === "string"
+                  ? phase.activities
+                  : phase.activities?.name || "",
+              knowledgePoints:
+                phase.knowledgePoints?.map(
+                  (kp: any) => kp.description || kp.tag || "",
+                ) || [phase.knowledge || ""].filter(Boolean),
+              expectedOutcome: "",
+              verification: "",
+              duration: 10,
+            }));
+        }
+      }
     });
   }
 };
@@ -2916,6 +3084,168 @@ const goToAIClassroom = () => {
     50% {
       transform: scale(1.2);
     }
+  }
+}
+
+// 生成课程设计加载动画
+.generation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+.generation-dialog {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(240, 253, 255, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow:
+    0 20px 60px rgba(6, 182, 212, 0.3),
+    0 0 0 1px rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.generation-header {
+  margin-bottom: 24px;
+  text-align: center;
+
+  .generation-title {
+    font-size: 22px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #0c4a6e 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+}
+
+.generation-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.loading-animation {
+  .spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: #06b6d4;
+    border-radius: 50%;
+    animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+
+    &:nth-child(1) {
+      animation-delay: -0.45s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: -0.3s;
+      border-top-color: #0ea5e9;
+    }
+
+    &:nth-child(3) {
+      animation-delay: -0.15s;
+      border-top-color: #0284c7;
+    }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.generation-status {
+  font-size: 15px;
+  color: #0c4a6e;
+  text-align: center;
+  min-height: 24px;
+  font-weight: 500;
+}
+
+.generation-progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(6, 182, 212, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #06b6d4 0%, #0ea5e9 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      position: relative;
+      overflow: hidden;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.3) 50%,
+          transparent 100%
+        );
+        animation: shimmer 2s infinite;
+      }
+    }
+  }
+
+  .progress-text {
+    text-align: center;
+    font-size: 14px;
+    color: #0284c7;
+    font-weight: 600;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }
 </style>

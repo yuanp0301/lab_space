@@ -15,6 +15,7 @@ export const useSidebarStore = defineStore("sidebar", () => {
   const isSecondarySidebarCollapsed = ref(false);
   const conversations = ref<Conversation[]>([]);
   const currentConversationId = ref<string | null>(null);
+  const expandedMenuId = ref<string | null>(null);
 
   const sortedConversations = computed(() => {
     return [...conversations.value].sort((a, b) => b.timestamp - a.timestamp);
@@ -70,11 +71,20 @@ export const useSidebarStore = defineStore("sidebar", () => {
     currentConversationId.value = id;
   };
 
+  const setExpandedMenuId = (id: string | null) => {
+    expandedMenuId.value = id;
+    // 当展开菜单时，显示二级侧边栏
+    if (id) {
+      isSecondarySidebarCollapsed.value = false;
+    }
+  };
+
   return {
     activeSection,
     isSecondarySidebarCollapsed,
     conversations,
     currentConversationId,
+    expandedMenuId,
     sortedConversations,
     currentConversation,
     setActiveSection,
@@ -83,5 +93,6 @@ export const useSidebarStore = defineStore("sidebar", () => {
     updateConversation,
     deleteConversation,
     setCurrentConversation,
+    setExpandedMenuId,
   };
 });

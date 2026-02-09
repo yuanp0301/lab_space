@@ -24,7 +24,7 @@
           <el-button :icon="Edit" @click="currentView = 'editor'">
             编辑
           </el-button>
-          <el-button :icon="Document" @click="showDesignDialog = true">
+          <el-button :icon="Document" @click="handleNavigateToDesignThinking">
             课件设计思路
           </el-button>
           <el-button
@@ -121,20 +121,6 @@
           开始生成
         </el-button>
       </template>
-    </el-dialog>
-
-    <!-- 课件设计思路对话框 -->
-    <el-dialog
-      v-model="showDesignDialog"
-      title="课件设计思路"
-      width="900px"
-      :close-on-click-modal="false"
-    >
-      <SlideDesignEditor
-        v-if="slideData"
-        :lesson-title="slideData.lessonTitle"
-        @generate="handleRegenerateFromDesign"
-      />
     </el-dialog>
 
     <!-- 基于文档生成对话框 -->
@@ -330,7 +316,8 @@ import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import SlideEditor from "@/components/slides/SlideEditor.vue";
 import SlidePreview from "@/components/slides/SlidePreview.vue";
-import SlideDesignEditor from "@/components/slides/SlideDesignEditor.vue";
+import { slideGenerateApi } from "@/api/slide-generate.api";
+import type { Template } from "@/types/slide.types";
 
 // Store
 const route = useRoute();
@@ -343,7 +330,6 @@ const { slideData, isLoading } = storeToRefs(slidesStore);
 // 视图状态
 const currentView = ref<"editor" | "preview">("editor");
 const showTemplateDialog = ref(false);
-const showDesignDialog = ref(false);
 const showDocumentDialog = ref(false);
 
 // 文档上传相关状态
@@ -373,44 +359,7 @@ const form = ref({
 
 // 模板数据
 const selectedTemplate = ref("");
-const templates = [
-  {
-    id: "template-blue-cold",
-    name: "蓝色清新",
-    color: "#4A90E2",
-    description: "适合理性分析类课程",
-  },
-  {
-    id: "template-warm-orange",
-    name: "橙色温暖",
-    color: "#F5A623",
-    description: "适合人文情感类课程",
-  },
-  {
-    id: "template-green-nature",
-    name: "绿色自然",
-    color: "#7ED321",
-    description: "适合科学探究类课程",
-  },
-  {
-    id: "template-purple-elegant",
-    name: "紫色典雅",
-    color: "#9013FE",
-    description: "适合艺术鉴赏类课程",
-  },
-  {
-    id: "template-red-passion",
-    name: "红色热情",
-    color: "#D0021B",
-    description: "适合活动互动类课程",
-  },
-  {
-    id: "template-gray-modern",
-    name: "灰色现代",
-    color: "#9B9B9B",
-    description: "适合商务专业类课程",
-  },
-];
+const templates = ref<Template[]>([]);
 
 // 时间格式化
 const formatTime = (time: string) => {
@@ -433,15 +382,19 @@ const handleGenerate = async () => {
   }
 };
 
-// 根据课件设计思路重新生成
-const handleRegenerateFromDesign = async (designData: any) => {
-  try {
-    await slidesStore.generateFromDesign(designData);
-    showDesignDialog.value = false;
-    ElMessage.success("根据设计思路重新生成成功!");
-  } catch (error) {
-    ElMessage.error("生成失败，请重试");
+// 跳转到课件设计思路页面
+const handleNavigateToDesignThinking = () => {
+  if (!slideData.value) {
+    ElMessage.warning("请先生成课件");
+    return;
   }
+  router.push({
+    path: "/slide-design-thinking",
+    query: {
+      title: slideData.value.lessonTitle,
+      from: "slide-generator",
+    },
+  });
 };
 
 // 更新单页课件
@@ -458,7 +411,7 @@ const handleSave = async () => {
       type: "info",
     });
 
-    await slidesStore.saveSlides(slideData.value?.username || "");
+    await slidesStore.saveSlides();
     ElMessage.success("保存成功!");
   } catch (error) {
     if (error !== "cancel") {
@@ -733,8 +686,16 @@ const handleSubmitAI = () => {
 };
 
 // 页面加载时尝试加载课件数据
-onMounted(() => {
-  slidesStore.loadSlides();
+onMounted(async () => {
+  // 加载模板列表
+  try {
+    templates.value = await slideGenerateApi.getTemplates();
+  } catch (error) {
+    console.error("加载模板列表失败:", error);
+    ElMessage.error("加载模板列表失败");
+  }
+
+  // slidesStore.loadSlides(); // 注释掉，因为需要username和lessonTitle参数
 
   // 检测是否从首页跳转过来，根据类型打开对应对话框
   const type = route.query.type as string;
@@ -748,7 +709,7 @@ onMounted(() => {
 
   // 检测是否从课程设计页面跳转过来
   if (route.query.from === "course-design") {
-    // 如果有课程设计数据，自动打开课件设计思路对话框
+    // 如果有课程设计数据，自动跳转到课件设计思路页面
     if (courseStore.courseData) {
       // 初始化课件数据（如果还没有），使用课程设计的标题
       if (!slideData.value) {
@@ -763,10 +724,14 @@ onMounted(() => {
         // 如果已有数据，更新标题
         slideData.value.lessonTitle = courseStore.courseData.lessonTitle;
       }
-      // 延迟打开对话框，确保组件已渲染
-      setTimeout(() => {
-        showDesignDialog.value = true;
-      }, 300);
+      // 跳转到课件设计思路页面
+      router.push({
+        path: "/slide-design-thinking",
+        query: {
+          title: courseStore.courseData.lessonTitle,
+          from: "course-design",
+        },
+      });
     }
   }
 });

@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     aimindsky_base_url: str = "https://api.aimindsky.com/v1"
 
     # Default Provider
-    default_provider: str = "anthropic"
+    default_provider: str = "aimindsky"
 
     # Default Models
     default_anthropic_model: str = "claude-sonnet-4-20250514"

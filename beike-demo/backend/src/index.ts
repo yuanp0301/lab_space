@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import slideRoutes from "./routes/slide.routes";
+import courseDesignRoutes from "./routes/course-design.routes";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +17,7 @@ app.use("/data", express.static(path.join(process.cwd(), "..", "data")));
 
 // API路由
 app.use("/api/slides", slideRoutes);
+app.use("/api/course-design", courseDesignRoutes);
 
 // 健康检查
 app.get("/health", (req, res) => {

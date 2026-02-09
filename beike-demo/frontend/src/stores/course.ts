@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { courseDesignApi } from "@/api/course-design.api";
 
 export type Section = {
   id: string;
@@ -36,16 +37,21 @@ export const useCourseStore = defineStore("course", () => {
   const currentView = ref<"table" | "card" | "timeline">("table");
 
   // 加载初始课程设计数据
-  const loadCourseDesign = async () => {
+  const loadCourseDesign = async (username?: string) => {
     isLoading.value = true;
     try {
-      // TODO: 从解析后的JSON文件加载数据
-      // const response = await fetch('/src/data/parsed/course-design.json')
-      // courseData.value = await response.json()
+      // 如果提供了用户名，尝试从后端加载
+      if (username) {
+        const data = await courseDesignApi.loadCourseDesign(username);
+        if (data) {
+          courseData.value = data;
+          return;
+        }
+      }
 
-      // 临时模拟数据
+      // 否则创建空白模板
       courseData.value = {
-        username: "",
+        username: username || "",
         lessonTitle: "秋天的怀念",
         updateTime: new Date().toISOString(),
         courseDesign: {
@@ -115,7 +121,7 @@ export const useCourseStore = defineStore("course", () => {
     currentView.value = view;
   };
 
-  // 保存到本地
+  // 保存到后端
   const saveCourseDesign = async (username: string) => {
     if (!courseData.value) return;
 
@@ -123,10 +129,29 @@ export const useCourseStore = defineStore("course", () => {
     courseData.value.updateTime = new Date().toISOString();
 
     try {
-      // TODO: 调用后端API保存到 data/users/{username}/课程设计.json
-      console.log("保存课程设计:", courseData.value);
+      await courseDesignApi.saveCourseDesign(username, courseData.value);
     } catch (error) {
       console.error("保存失败:", error);
+      throw error;
+    }
+  };
+
+  // 列出用户的所有课程设计
+  const listCourseDesigns = async (username: string) => {
+    try {
+      return await courseDesignApi.listUserCourseDesigns(username);
+    } catch (error) {
+      console.error("列出课程设计失败:", error);
+      return [];
+    }
+  };
+
+  // 删除课程设计
+  const deleteCourseDesign = async (username: string, filename: string) => {
+    try {
+      await courseDesignApi.deleteCourseDesign(username, filename);
+    } catch (error) {
+      console.error("删除课程设计失败:", error);
       throw error;
     }
   };
@@ -141,5 +166,7 @@ export const useCourseStore = defineStore("course", () => {
     deleteSection,
     setView,
     saveCourseDesign,
+    listCourseDesigns,
+    deleteCourseDesign,
   };
 });

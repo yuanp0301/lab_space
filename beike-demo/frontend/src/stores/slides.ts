@@ -1,29 +1,17 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import type {
+  Material,
+  GeneratedSlide,
+  GeneratedSlideData,
+  GenerateFromDesignRequest,
+} from "@/types/slide.types";
+import { slideGenerateApi } from "@/api/slide-generate.api";
 
-export type Material = {
-  type: "image" | "audio" | "video";
-  src: string;
-  position?: string;
-};
-
-export type Slide = {
-  id: string;
-  title: string;
-  content: string;
-  bgImage?: string;
-  materials: Material[];
-  transition?: string;
-  type?: string;
-};
-
-export type SlideData = {
-  username: string;
-  lessonTitle: string;
-  updateTime: string;
-  template: string;
-  slides: Slide[];
-};
+// 为了向后兼容，导出别名
+export type Slide = GeneratedSlide;
+export type SlideData = GeneratedSlideData;
+export type { Material };
 
 export const useSlidesStore = defineStore("slides", () => {
   const slideData = ref<SlideData | null>(null);
@@ -32,19 +20,14 @@ export const useSlidesStore = defineStore("slides", () => {
   const generationMode = ref<"template" | "manual">("template");
 
   // 加载课件数据
-  const loadSlides = async () => {
+  const loadSlides = async (username: string, lessonTitle: string) => {
     isLoading.value = true;
     try {
-      // TODO: 从解析后的JSON文件加载数据
-      slideData.value = {
-        username: "",
-        lessonTitle: "秋天的怀念",
-        updateTime: new Date().toISOString(),
-        template: "template-blue-cold",
-        slides: [],
-      };
+      const data = await slideGenerateApi.loadSlides(username, lessonTitle);
+      slideData.value = data;
     } catch (error) {
       console.error("加载课件失败:", error);
+      throw error;
     } finally {
       isLoading.value = false;
     }
@@ -55,46 +38,21 @@ export const useSlidesStore = defineStore("slides", () => {
     templateId: string,
     lessonTitle: string,
     username: string,
+    grade?: string,
+    subject?: string,
+    requirements?: string,
   ) => {
     isLoading.value = true;
     try {
-      // TODO: 调用AI生成35页课件
-      console.log("使用模版生成课件:", templateId, lessonTitle);
-
-      // 临时模拟数据 - 生成基础课件结构
-      slideData.value = {
-        username: username,
-        lessonTitle: lessonTitle,
-        updateTime: new Date().toISOString(),
-        template: templateId,
-        slides: [
-          {
-            id: "slide-1",
-            title: lessonTitle,
-            content: `<h1>${lessonTitle}</h1><p>教师: ${username}</p>`,
-            materials: [],
-            transition: "fade",
-            type: "title",
-          },
-          {
-            id: "slide-2",
-            title: "教学目标",
-            content:
-              "<h2>教学目标</h2><ul><li>知识与技能</li><li>过程与方法</li><li>情感态度价值观</li></ul>",
-            materials: [],
-            transition: "slide",
-            type: "lecture",
-          },
-          {
-            id: "slide-3",
-            title: "课程内容",
-            content: "<h2>课程内容</h2><p>点击编辑添加课程内容...</p>",
-            materials: [],
-            transition: "fade",
-            type: "lecture",
-          },
-        ],
-      };
+      const data = await slideGenerateApi.generateFromTemplate({
+        templateId,
+        lessonTitle,
+        username,
+        grade,
+        subject,
+        requirements,
+      });
+      slideData.value = data;
     } catch (error) {
       console.error("生成课件失败:", error);
       throw error;
@@ -104,12 +62,11 @@ export const useSlidesStore = defineStore("slides", () => {
   };
 
   // 根据设计思路生成课件
-  const generateFromDesign = async (designData: any) => {
+  const generateFromDesign = async (params: GenerateFromDesignRequest) => {
     isLoading.value = true;
     try {
-      // TODO: 调用AI根据设计思路生成课件
-      console.log("根据设计思路生成课件:", designData);
-      // 这里可以解析designData并生成完整的35页课件
+      const data = await slideGenerateApi.generateFromDesign(params);
+      slideData.value = data;
     } catch (error) {
       console.error("生成课件失败:", error);
       throw error;
@@ -157,15 +114,15 @@ export const useSlidesStore = defineStore("slides", () => {
   };
 
   // 保存课件
-  const saveSlides = async (username: string) => {
-    if (!slideData.value) return;
+  const saveSlides = async () => {
+    if (!slideData.value) {
+      throw new Error("没有课件数据可以保存");
+    }
 
-    slideData.value.username = username;
     slideData.value.updateTime = new Date().toISOString();
 
     try {
-      // TODO: 调用后端API保存到 data/users/{username}/课件内容.json
-      console.log("保存课件:", slideData.value);
+      await slideGenerateApi.saveSlides(slideData.value);
     } catch (error) {
       console.error("保存失败:", error);
       throw error;

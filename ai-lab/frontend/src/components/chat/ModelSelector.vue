@@ -35,20 +35,22 @@ const modelOptions = computed(() => {
 </script>
 
 <template>
-  <NSpace>
+  <div class="flex items-center gap-3">
     <NSelect
       :value="currentProvider"
       :options="providerOptions"
-      placeholder="选择 Provider"
-      style="width: 160px"
+      placeholder="选择服务"
+      size="small"
+      style="width: 140px"
       @update:value="(v) => emit('update:currentProvider', v)"
     />
     <NSelect
       :value="currentModel"
       :options="modelOptions"
       placeholder="选择模型"
-      style="width: 200px"
+      size="small"
+      style="width: 180px"
       @update:value="(v) => emit('update:currentModel', v)"
     />
-  </NSpace>
+  </div>
 </template>

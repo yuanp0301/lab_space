@@ -97,6 +97,7 @@ make backend
 ```
 
 后端服务启动后：
+
 - API 服务地址：http://localhost:8000
 - API 文档（Swagger）：http://localhost:8000/docs
 - API 文档（ReDoc）：http://localhost:8000/redoc
@@ -118,6 +119,7 @@ pnpm dev
 ```
 
 前端服务启动后：
+
 - 访问地址：http://localhost:5173
 - 开发服务器会自动代理 `/api` 请求到后端 `http://localhost:8000`
 
@@ -148,6 +150,7 @@ make down  # 停止
 ```
 
 Docker 启动后：
+
 - 后端服务：http://localhost:8000
 - 前端服务：http://localhost:5173
 
@@ -236,6 +239,7 @@ A: 需要先安装 Poetry：`pip install poetry` 或 `curl -sSL https://install.
 
 **Q: 启动时提示端口被占用？**  
 A: 修改 `backend/.env` 中的 `PORT` 配置，或使用其他端口启动：
+
 ```bash
 poetry run uvicorn app.main:app --reload --port 8001
 ```
@@ -249,7 +253,8 @@ A: 检查 `backend/.env` 中的 `CORS_ORIGINS` 配置，确保包含前端地址
 A: 安装 pnpm：`npm install -g pnpm` 或使用 corepack：`corepack enable && corepack prepare pnpm@latest --activate`
 
 **Q: 前端无法连接到后端？**  
-A: 
+A:
+
 1. 确保后端服务已启动（http://localhost:8000）
 2. 检查 `frontend/vite.config.ts` 中的代理配置
 3. 如果使用 Docker，检查 `docker-compose.yml` 中的 `VITE_API_URL` 环境变量
@@ -257,7 +262,8 @@ A:
 ### Docker 启动问题
 
 **Q: Docker 容器启动失败？**  
-A: 
+A:
+
 1. 确保 `backend/.env` 文件已创建并配置
 2. 检查端口是否被占用：`lsof -i :8000` 和 `lsof -i :5173`
 3. 查看容器日志：`docker-compose logs -f`

@@ -58,78 +58,100 @@ const handleKeydown = (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="w-full max-w-3xl mx-auto">
+  <div class="w-full">
     <div
-      class="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm border border-[var(--border-color)]"
+      class="group flex items-end gap-3 rounded-2xl border-2 border-[var(--border-light)] bg-white p-5 shadow-md focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-100/50 focus-within:shadow-lg transition-all duration-200"
     >
-      <!-- Input Row -->
-      <div class="flex items-end gap-3">
-        <!-- Model Selector -->
-        <div class="flex items-center gap-2">
-          <NSelect
-            :value="currentProvider"
-            :options="providerOptions()"
-            size="small"
-            style="width: 120px"
-            placeholder="选择服务"
-            @update:value="handleProviderChange"
-          />
-          <NSelect
-            v-if="availableModels.length > 0"
-            :value="currentModel"
-            :options="modelOptions()"
-            size="small"
-            style="width: 160px"
-            placeholder="选择模型"
-            @update:value="handleModelChange"
-          />
-        </div>
+      <!-- Model Selector -->
+      <NSelect
+        v-if="availableModels.length > 0"
+        :value="currentModel"
+        :options="modelOptions()"
+        size="small"
+        style="width: 180px"
+        placeholder="选择模型"
+        @update:value="handleModelChange"
+      />
 
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-1">
-          <NUpload
-            :show-file-list="false"
-            accept="image/*"
-            :disabled="isUploading"
-          >
-            <NButton quaternary circle size="small" :loading="isUploading">
-              <template #icon>
-                <span>📷</span>
-              </template>
-            </NButton>
-          </NUpload>
-          <NButton quaternary circle size="small">
-            <template #icon>
-              <span>📄</span>
-            </template>
-          </NButton>
-          <NButton quaternary circle size="small">
-            <template #icon>
-              <span>🔍</span>
-            </template>
-          </NButton>
-        </div>
-
-        <!-- Input Field -->
-        <div class="flex-1">
-          <NInput
-            v-model:value="inputValue"
-            type="textarea"
-            placeholder="给 AI 助手发送消息..."
-            :autosize="{ minRows: 1, maxRows: 4 }"
-            @keydown="handleKeydown"
-          />
-        </div>
-
-        <!-- Send Button -->
-        <NButton
-          type="primary"
-          :disabled="!inputValue.trim()"
-          @click="handleSend"
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <NUpload
+          :show-file-list="false"
+          accept="image/*"
+          :disabled="isUploading"
         >
-          发送
+          <NButton
+            quaternary
+            circle
+            size="medium"
+            :loading="isUploading"
+            class="hover:bg-indigo-50 hover:text-indigo-600 transition-all"
+          >
+            <template #icon>
+              <span class="text-xl">🖼️</span>
+            </template>
+          </NButton>
+        </NUpload>
+        <NButton
+          quaternary
+          circle
+          size="medium"
+          class="hover:bg-purple-50 hover:text-purple-600 transition-all"
+        >
+          <template #icon>
+            <span class="text-xl">📄</span>
+          </template>
+        </NButton>
+        <NButton
+          quaternary
+          circle
+          size="medium"
+          class="hover:bg-pink-50 hover:text-pink-600 transition-all"
+        >
+          <template #icon>
+            <span class="text-lg">🌐</span>
+          </template>
         </NButton>
       </div>
+
+      <!-- Input Field -->
+      <div class="flex-1">
+        <NInput
+          v-model:value="inputValue"
+          type="textarea"
+          placeholder="Enter发送, Shift+Enter换行, 可直接粘贴或拖拽图片"
+          :autosize="{ minRows: 1, maxRows: 4 }"
+          :bordered="false"
+          class="!bg-transparent"
+          @keydown="handleKeydown"
+        />
+      </div>
+
+      <!-- Send Button -->
+      <NButton
+        type="primary"
+        :disabled="!inputValue.trim()"
+        class="!rounded-xl !h-11 !px-6 !bg-gradient-to-r !from-indigo-500 !to-purple-500 hover:!from-indigo-600 hover:!to-purple-600 !shadow-lg hover:!shadow-xl !border-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="handleSend"
+      >
+        <template #icon>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </template>
+        <span class="ml-2 font-semibold">发送</span>
+      </NButton>
     </div>
   </div>
 </template>

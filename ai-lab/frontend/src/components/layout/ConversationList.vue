@@ -41,11 +41,7 @@ const handleDelete = (e: Event, id: string) => {
 </script>
 
 <template>
-  <div>
-    <div class="text-xs font-medium uppercase text-gray-400 px-2 py-2">
-      历史对话
-    </div>
-
+  <div class="px-2">
     <NEmpty
       v-if="sortedConversations.length === 0"
       size="small"
@@ -57,30 +53,78 @@ const handleDelete = (e: Event, id: string) => {
       <button
         v-for="conv in sortedConversations"
         :key="conv.id"
-        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors"
+        class="group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200 hover:shadow-sm"
         :class="[
           conv.id === currentConversationId
-            ? 'bg-brand-50 text-brand-600'
-            : 'text-[var(--text-secondary)] hover:bg-gray-100',
+            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm border border-indigo-100'
+            : 'text-[var(--text-secondary)] hover:bg-gray-50/80',
         ]"
         @click="handleSelect(conv.id)"
       >
-        <span class="text-base">💬</span>
+        <div
+          class="flex items-center justify-center rounded-lg"
+          :class="[
+            conv.id === currentConversationId
+              ? 'bg-indigo-100 text-indigo-600'
+              : 'bg-gray-100 text-gray-500',
+          ]"
+          :style="{
+            height: 'clamp(2rem, 3vw, 2.25rem)',
+            width: 'clamp(2rem, 3vw, 2.25rem)',
+            fontSize: 'clamp(0.875rem, 1.3vw, 1rem)',
+          }"
+        >
+          💬
+        </div>
         <div class="flex-1 min-w-0">
-          <div class="truncate text-sm font-medium">{{ conv.title }}</div>
-          <div class="truncate text-xs text-gray-400">
+          <div
+            class="truncate font-semibold mb-0.5"
+            :style="{ fontSize: 'clamp(0.75rem, 1vw, 0.875rem)' }"
+          >
+            {{ conv.title }}
+          </div>
+          <div
+            class="truncate"
+            :class="
+              conv.id === currentConversationId
+                ? 'text-indigo-500'
+                : 'text-gray-400'
+            "
+            :style="{ fontSize: 'clamp(0.625rem, 0.85vw, 0.75rem)' }"
+          >
             {{ conv.preview || "无消息" }}
           </div>
         </div>
-        <div class="flex items-center gap-1">
-          <span class="text-xs text-gray-400">{{
-            formatTime(conv.timestamp)
-          }}</span>
+        <div class="flex items-center gap-2">
+          <span
+            class="font-medium"
+            :class="
+              conv.id === currentConversationId
+                ? 'text-indigo-500'
+                : 'text-gray-400'
+            "
+            :style="{ fontSize: 'clamp(0.625rem, 0.85vw, 0.75rem)' }"
+            >{{ formatTime(conv.timestamp) }}</span
+          >
           <button
-            class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+            class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
             @click="(e) => handleDelete(e, conv.id)"
           >
-            ×
+            <svg
+              class="fill-none stroke-current"
+              :style="{
+                width: 'clamp(0.875rem, 1.2vw, 1rem)',
+                height: 'clamp(0.875rem, 1.2vw, 1rem)',
+              }"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </button>
         </div>
       </button>

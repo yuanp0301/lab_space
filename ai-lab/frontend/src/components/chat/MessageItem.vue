@@ -31,45 +31,56 @@ const imageBlocks = computed(() => {
 
 <template>
   <div
-    class="flex gap-4 py-4"
+    class="group flex gap-4 py-6"
     :class="isUser ? 'flex-row-reverse' : 'flex-row'"
   >
     <!-- Avatar -->
     <div class="flex-shrink-0">
-      <NAvatar
-        :size="36"
-        round
-        :style="{
-          backgroundColor: isUser ? '#4F8CFF' : '#6B7280',
-        }"
-      >
-        {{ isUser ? "U" : "AI" }}
-      </NAvatar>
+      <div class="relative">
+        <div
+          v-if="!isUser"
+          class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full blur-lg opacity-30"
+        ></div>
+        <NAvatar
+          :size="44"
+          round
+          :style="{
+            background: isUser
+              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+              : 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+            position: 'relative',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+          }"
+        >
+          {{ isUser ? "U" : "AI" }}
+        </NAvatar>
+      </div>
     </div>
 
     <!-- Message Content -->
     <div
-      class="max-w-[80%] rounded-2xl px-4 py-3"
+      class="max-w-[78%] rounded-2xl px-6 py-4 shadow-md transition-all duration-200 group-hover:shadow-lg"
       :class="[
         isUser
-          ? 'bg-brand-400 text-white'
-          : 'bg-white border border-[var(--border-color)]',
+          ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white'
+          : 'bg-white border-2 border-[var(--border-light)]',
       ]"
     >
       <!-- Image attachments -->
-      <div v-if="imageBlocks.length > 0" class="mb-3 flex flex-wrap gap-2">
+      <div v-if="imageBlocks.length > 0" class="mb-4 flex flex-wrap gap-3">
         <img
           v-for="(img, idx) in imageBlocks"
           :key="idx"
           :src="`data:${img.media_type};base64,${img.data}`"
-          class="max-h-48 rounded-lg object-cover"
+          class="max-h-56 rounded-xl object-cover shadow-md hover:shadow-lg transition-shadow cursor-pointer"
           alt="Uploaded image"
         />
       </div>
 
       <!-- Text content -->
       <div
-        class="whitespace-pre-wrap break-words text-sm leading-relaxed"
+        class="whitespace-pre-wrap break-words text-[15px] leading-relaxed font-medium"
         :class="isUser ? 'text-white' : 'text-[var(--text-primary)]'"
       >
         {{ displayContent }}
