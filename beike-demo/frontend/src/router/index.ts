@@ -36,6 +36,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/SlideGenerator.vue"),
   },
   {
+    path: "/slide-design-thinking",
+    name: "SlideDesignThinking",
+    component: () => import("@/views/SlideDesignThinking.vue"),
+  },
+  {
     path: "/assignment-design",
     name: "AssignmentDesign",
     component: () => import("@/views/HomeworkDesign.vue"),

@@ -136,12 +136,186 @@
         @generate="handleRegenerateFromDesign"
       />
     </el-dialog>
+
+    <!-- 基于文档生成对话框 -->
+    <el-dialog
+      v-model="showDocumentDialog"
+      title="基于文档生成课件"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <div class="document-upload-dialog">
+        <el-tabs v-model="documentUploadTab" class="upload-tabs">
+          <el-tab-pane label="上传文件" name="upload">
+            <div
+              class="upload-area"
+              @click="triggerFileInput"
+              @dragover.prevent="handleDragOver"
+              @drop.prevent="handleDrop"
+              @dragleave.prevent="isDragOver = false"
+              :class="{ 'drag-over': isDragOver, 'has-file': selectedFile }"
+            >
+              <input
+                ref="fileInput"
+                type="file"
+                accept=".doc,.docx,.md,.markdown,.html,.htm"
+                @change="handleFileSelect"
+                style="display: none"
+              />
+              <div class="upload-icon">
+                <span v-if="!selectedFile">📤</span>
+                <span v-else>✅</span>
+              </div>
+              <div class="upload-text">
+                <div v-if="!selectedFile" class="upload-text-content">
+                  <div class="upload-main-text">点击或拖拽上传文档</div>
+                  <div class="upload-hint-text">
+                    支持 Word、Markdown、HTML 格式
+                  </div>
+                </div>
+                <div v-else class="file-info-content">
+                  <div class="file-name">{{ selectedFile.name }}</div>
+                  <div class="file-size-hint">文件已选择</div>
+                </div>
+              </div>
+              <button
+                v-if="selectedFile"
+                class="file-remove"
+                @click.stop="removeFile"
+              >
+                ×
+              </button>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="输入URL" name="url">
+            <div class="url-input-wrapper">
+              <el-input
+                v-model="documentURL"
+                placeholder="请输入文档URL地址，例如：https://www.zxxk.com/..."
+                clearable
+              />
+              <div class="url-hint">支持学科网、教育资源网等平台的文档链接</div>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+      <template #footer>
+        <el-button @click="showDocumentDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          :disabled="!isDocumentValid"
+          @click="handleSubmitDocument"
+        >
+          提交
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 粘贴文本生成对话框 -->
+    <el-dialog
+      v-model="showTextDialog"
+      title="粘贴文本生成课件"
+      width="700px"
+      :close-on-click-modal="false"
+    >
+      <div class="text-input-dialog">
+        <el-input
+          v-model="inputText"
+          type="textarea"
+          :rows="12"
+          placeholder="请在此粘贴或输入文本内容..."
+          show-word-limit
+          maxlength="10000"
+        />
+        <div class="text-count">{{ inputText.length }} 字</div>
+      </div>
+      <template #footer>
+        <el-button @click="showTextDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          :disabled="!inputText.trim()"
+          @click="handleSubmitText"
+        >
+          提交
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- AI一句话生成对话框 -->
+    <el-dialog
+      v-model="showAIDialog"
+      title="AI一句话生成课件"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <div class="ai-dialog-content">
+        <el-input
+          v-model="aiInputText"
+          type="textarea"
+          :rows="3"
+          placeholder="请输入一句话描述，例如：设计一个关于秋天的怀念的课件..."
+          @keyup.ctrl.enter="handleSubmitAI"
+        />
+        <div class="ai-upload-section">
+          <div class="upload-label">参考文件（可选）</div>
+          <div
+            class="ai-upload-area"
+            @click="triggerAIFileInput"
+            @dragover.prevent="handleAIDragOver"
+            @drop.prevent="handleAIDrop"
+            @dragleave.prevent="isAIDragOver = false"
+            :class="{ 'drag-over': isAIDragOver, 'has-file': aiReferenceFile }"
+          >
+            <input
+              ref="aiFileInput"
+              type="file"
+              accept=".doc,.docx,.md,.markdown,.html,.htm,.txt,.pdf"
+              @change="handleAIFileSelect"
+              style="display: none"
+            />
+            <div class="upload-icon-small">
+              <span v-if="!aiReferenceFile">📎</span>
+              <span v-else>✅</span>
+            </div>
+            <div class="upload-text-small">
+              <span v-if="!aiReferenceFile">点击或拖拽上传参考文件</span>
+              <span v-else>{{ aiReferenceFile.name }}</span>
+            </div>
+            <button
+              v-if="aiReferenceFile"
+              class="file-remove-small"
+              @click.stop="removeAIFile"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div class="ai-url-section">
+          <div class="upload-label">学科网URL（可选）</div>
+          <el-input
+            v-model="aiReferenceURL"
+            placeholder="请输入学科网URL地址，例如：https://www.zxxk.com/..."
+            clearable
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showAIDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          :disabled="!aiInputText.trim()"
+          @click="handleSubmitAI"
+        >
+          提交
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   MagicStick,
@@ -160,6 +334,7 @@ import SlideDesignEditor from "@/components/slides/SlideDesignEditor.vue";
 
 // Store
 const route = useRoute();
+const router = useRouter();
 const slidesStore = useSlidesStore();
 const courseStore = useCourseStore();
 const userStore = useUserStore();
@@ -169,6 +344,26 @@ const { slideData, isLoading } = storeToRefs(slidesStore);
 const currentView = ref<"editor" | "preview">("editor");
 const showTemplateDialog = ref(false);
 const showDesignDialog = ref(false);
+const showDocumentDialog = ref(false);
+
+// 文档上传相关状态
+const documentUploadTab = ref<"upload" | "url">("upload");
+const selectedFile = ref<File | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
+const isDragOver = ref(false);
+const documentURL = ref("");
+
+// 文本输入相关状态
+const showTextDialog = ref(false);
+const inputText = ref("");
+
+// AI生成相关状态
+const showAIDialog = ref(false);
+const aiInputText = ref("");
+const aiReferenceFile = ref<File | null>(null);
+const aiFileInput = ref<HTMLInputElement | null>(null);
+const isAIDragOver = ref(false);
+const aiReferenceURL = ref("");
 
 // 表单数据
 const form = ref({
@@ -272,10 +467,285 @@ const handleSave = async () => {
   }
 };
 
+// 验证文档输入是否有效
+const isDocumentValid = computed(() => {
+  if (documentUploadTab.value === "upload") {
+    return selectedFile.value !== null;
+  } else {
+    return documentURL.value.trim() !== "";
+  }
+});
+
+// 验证文件类型
+const validateFileType = (file: File): boolean => {
+  const validTypes = [
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/markdown",
+    "text/html",
+  ];
+  const validExtensions = [
+    ".doc",
+    ".docx",
+    ".md",
+    ".markdown",
+    ".html",
+    ".htm",
+  ];
+  const fileExtension = "." + file.name.split(".").pop()?.toLowerCase();
+
+  return (
+    validTypes.includes(file.type) || validExtensions.includes(fileExtension)
+  );
+};
+
+// 触发文件选择
+const triggerFileInput = () => {
+  fileInput.value?.click();
+};
+
+// 文件选择处理
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0];
+    if (validateFileType(file)) {
+      selectedFile.value = file;
+    } else {
+      ElMessage.warning("不支持的文件类型，请上传 Word、Markdown 或 HTML 文档");
+    }
+  }
+};
+
+// 拖拽悬停
+const handleDragOver = (event: DragEvent) => {
+  event.preventDefault();
+  isDragOver.value = true;
+};
+
+// 拖拽放下
+const handleDrop = (event: DragEvent) => {
+  event.preventDefault();
+  isDragOver.value = false;
+
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0];
+    if (validateFileType(file)) {
+      selectedFile.value = file;
+    } else {
+      ElMessage.warning("不支持的文件类型，请上传 Word、Markdown 或 HTML 文档");
+    }
+  }
+};
+
+// 移除文件
+const removeFile = () => {
+  selectedFile.value = null;
+  if (fileInput.value) {
+    fileInput.value.value = "";
+  }
+};
+
+// 从文件名获取文件类型
+const getFileTypeFromName = (fileName: string): string => {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  if (["doc", "docx"].includes(ext || "")) return "word";
+  if (["md", "markdown"].includes(ext || "")) return "markdown";
+  if (["html", "htm"].includes(ext || "")) return "html";
+  return "unknown";
+};
+
+// 提交文档
+const handleSubmitDocument = () => {
+  const query: any = {
+    type: "document",
+  };
+
+  if (documentUploadTab.value === "upload" && selectedFile.value) {
+    query.source = "upload";
+    query.fileName = selectedFile.value.name;
+    query.fileType =
+      selectedFile.value.type || getFileTypeFromName(selectedFile.value.name);
+  } else if (documentUploadTab.value === "url" && documentURL.value.trim()) {
+    query.source = "url";
+    query.url = documentURL.value.trim();
+  }
+
+  showDocumentDialog.value = false;
+
+  // 跳转到课件设计思路页面
+  router.push({
+    path: "/slide-design-thinking",
+    query,
+  });
+
+  // 清空选择
+  selectedFile.value = null;
+  documentURL.value = "";
+  documentUploadTab.value = "upload";
+  if (fileInput.value) {
+    fileInput.value.value = "";
+  }
+};
+
+// 提交文本
+const handleSubmitText = () => {
+  if (!inputText.value.trim()) return;
+
+  showTextDialog.value = false;
+
+  // 跳转到课件设计思路页面
+  router.push({
+    path: "/slide-design-thinking",
+    query: {
+      type: "text",
+      content: inputText.value.trim(),
+    },
+  });
+
+  // 清空输入
+  inputText.value = "";
+};
+
+// 验证AI文件类型
+const validateAIFileType = (file: File): boolean => {
+  const validTypes = [
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/markdown",
+    "text/html",
+    "text/plain",
+    "application/pdf",
+  ];
+  const validExtensions = [
+    ".doc",
+    ".docx",
+    ".md",
+    ".markdown",
+    ".html",
+    ".htm",
+    ".txt",
+    ".pdf",
+  ];
+  const fileExtension = "." + file.name.split(".").pop()?.toLowerCase();
+
+  return (
+    validTypes.includes(file.type) || validExtensions.includes(fileExtension)
+  );
+};
+
+// 触发AI文件选择
+const triggerAIFileInput = () => {
+  aiFileInput.value?.click();
+};
+
+// AI文件选择处理
+const handleAIFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0];
+    if (validateAIFileType(file)) {
+      aiReferenceFile.value = file;
+    } else {
+      ElMessage.warning(
+        "不支持的文件类型，请上传 Word、Markdown、HTML、TXT 或 PDF 文档",
+      );
+    }
+  }
+};
+
+// AI拖拽悬停
+const handleAIDragOver = (event: DragEvent) => {
+  event.preventDefault();
+  isAIDragOver.value = true;
+};
+
+// AI拖拽放下
+const handleAIDrop = (event: DragEvent) => {
+  event.preventDefault();
+  isAIDragOver.value = false;
+
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const file = event.dataTransfer.files[0];
+    if (validateAIFileType(file)) {
+      aiReferenceFile.value = file;
+    } else {
+      ElMessage.warning(
+        "不支持的文件类型，请上传 Word、Markdown、HTML、TXT 或 PDF 文档",
+      );
+    }
+  }
+};
+
+// 移除AI文件
+const removeAIFile = () => {
+  aiReferenceFile.value = null;
+  if (aiFileInput.value) {
+    aiFileInput.value.value = "";
+  }
+};
+
+// 清理AI对话框
+const clearAIDialog = () => {
+  aiInputText.value = "";
+  aiReferenceFile.value = null;
+  aiReferenceURL.value = "";
+  if (aiFileInput.value) {
+    aiFileInput.value.value = "";
+  }
+};
+
+// 提交AI输入
+const handleSubmitAI = () => {
+  if (!aiInputText.value.trim()) return;
+
+  const prompt = aiInputText.value.trim();
+  const referenceURL = aiReferenceURL.value.trim();
+  const referenceFile = aiReferenceFile.value;
+
+  showAIDialog.value = false;
+
+  const query: any = {
+    type: "ai",
+    prompt: prompt,
+  };
+
+  // 如果有参考文件，添加文件信息
+  if (referenceFile) {
+    query.referenceFile = referenceFile.name;
+    query.referenceFileType =
+      referenceFile.type || getFileTypeFromName(referenceFile.name);
+  }
+
+  // 如果有参考URL，添加URL信息
+  if (referenceURL) {
+    query.referenceURL = referenceURL;
+  }
+
+  // 跳转到课件设计思路页面
+  router.push({
+    path: "/slide-design-thinking",
+    query,
+  });
+
+  // 清空输入
+  clearAIDialog();
+};
+
 // 页面加载时尝试加载课件数据
 onMounted(() => {
   slidesStore.loadSlides();
-  
+
+  // 检测是否从首页跳转过来，根据类型打开对应对话框
+  const type = route.query.type as string;
+  if (type === "document") {
+    showDocumentDialog.value = true;
+  } else if (type === "text") {
+    showTextDialog.value = true;
+  } else if (type === "ai") {
+    showAIDialog.value = true;
+  }
+
   // 检测是否从课程设计页面跳转过来
   if (route.query.from === "course-design") {
     // 如果有课程设计数据，自动打开课件设计思路对话框
@@ -405,6 +875,191 @@ onMounted(() => {
             color: #606266;
           }
         }
+      }
+    }
+  }
+
+  .document-upload-dialog {
+    .upload-tabs {
+      margin-bottom: 20px;
+    }
+
+    .upload-area {
+      border: 2px dashed #dcdfe6;
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+
+      &:hover {
+        border-color: #409eff;
+        background-color: #f5f7fa;
+      }
+
+      &.drag-over {
+        border-color: #409eff;
+        background-color: #ecf5ff;
+      }
+
+      &.has-file {
+        border-color: #67c23a;
+        background-color: #f0f9ff;
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .upload-text {
+        .upload-text-content {
+          .upload-main-text {
+            font-size: 16px;
+            color: #303133;
+            margin-bottom: 8px;
+          }
+
+          .upload-hint-text {
+            font-size: 14px;
+            color: #909399;
+          }
+        }
+
+        .file-info-content {
+          .file-name {
+            font-size: 16px;
+            color: #303133;
+            margin-bottom: 8px;
+            word-break: break-all;
+          }
+
+          .file-size-hint {
+            font-size: 14px;
+            color: #67c23a;
+          }
+        }
+      }
+
+      .file-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        background-color: #f56c6c;
+        color: white;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: #f78989;
+        }
+      }
+    }
+
+    .url-input-wrapper {
+      .url-hint {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #909399;
+      }
+    }
+  }
+
+  .text-input-dialog {
+    .text-count {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #909399;
+      text-align: right;
+    }
+  }
+
+  .ai-dialog-content {
+    .ai-upload-section {
+      margin-top: 20px;
+
+      .upload-label {
+        font-size: 14px;
+        color: #606266;
+        margin-bottom: 8px;
+      }
+
+      .ai-upload-area {
+        border: 2px dashed #dcdfe6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+
+        &:hover {
+          border-color: #409eff;
+          background-color: #f5f7fa;
+        }
+
+        &.drag-over {
+          border-color: #409eff;
+          background-color: #ecf5ff;
+        }
+
+        &.has-file {
+          border-color: #67c23a;
+          background-color: #f0f9ff;
+        }
+
+        .upload-icon-small {
+          font-size: 24px;
+        }
+
+        .upload-text-small {
+          font-size: 14px;
+          color: #606266;
+          flex: 1;
+          text-align: left;
+        }
+
+        .file-remove-small {
+          width: 20px;
+          height: 20px;
+          border: none;
+          background-color: #f56c6c;
+          color: white;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 14px;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            background-color: #f78989;
+          }
+        }
+      }
+    }
+
+    .ai-url-section {
+      margin-top: 20px;
+
+      .upload-label {
+        font-size: 14px;
+        color: #606266;
+        margin-bottom: 8px;
       }
     }
   }

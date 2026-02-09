@@ -174,7 +174,11 @@
         <el-icon class="is-loading"><Loading /></el-icon>
         <span>加载中...</span>
       </div>
-      <div v-else class="material-list-content" v-html="materialListContent"></div>
+      <div
+        v-else
+        class="material-list-content"
+        v-html="materialListContent"
+      ></div>
       <template #footer>
         <el-button @click="showMaterialList = false">关闭</el-button>
       </template>
@@ -257,10 +261,7 @@
               >
                 确认添加
               </el-button>
-              <el-button
-                size="small"
-                @click="handleRemoveUploadFile(index)"
-              >
+              <el-button size="small" @click="handleRemoveUploadFile(index)">
                 移除
               </el-button>
             </div>
@@ -285,7 +286,10 @@
 
         <!-- 类型筛选 -->
         <div class="drawer-type-filter">
-          <el-radio-group v-model="drawerTypeFilter" @change="handleDrawerTypeChange">
+          <el-radio-group
+            v-model="drawerTypeFilter"
+            @change="handleDrawerTypeChange"
+          >
             <el-radio-button value="all">全部</el-radio-button>
             <el-radio-button value="image">图片</el-radio-button>
             <el-radio-button value="audio">音频</el-radio-button>
@@ -304,8 +308,12 @@
           >
             <div class="material-item-icon">
               <el-icon v-if="material.type === 'image'"><Picture /></el-icon>
-              <el-icon v-else-if="material.type === 'audio'"><Headset /></el-icon>
-              <el-icon v-else-if="material.type === 'video'"><VideoPlay /></el-icon>
+              <el-icon v-else-if="material.type === 'audio'"
+                ><Headset
+              /></el-icon>
+              <el-icon v-else-if="material.type === 'video'"
+                ><VideoPlay
+              /></el-icon>
               <el-icon v-else><Operation /></el-icon>
             </div>
             <div class="material-item-info">
@@ -551,7 +559,6 @@ const loadMaterialList = async () => {
   }
 };
 
-
 // 抽屉中的素材过滤
 const drawerFilteredMaterials = computed(() => {
   let result = materialsStore.materials;
@@ -674,7 +681,14 @@ const handleConfirmUpload = (
     category: "自定义素材",
     src: uploadFile.url, // 使用对象 URL，实际应该使用服务器返回的 URL
     description: uploadFile.materialDesc || "用户上传的素材",
-    tags: ["自定义", materialType === "image" ? "图片" : materialType === "audio" ? "音频" : "视频"],
+    tags: [
+      "自定义",
+      materialType === "image"
+        ? "图片"
+        : materialType === "audio"
+          ? "音频"
+          : "视频",
+    ],
     style: "用户上传",
     适用环节: ["通用"],
   };
